@@ -5,7 +5,6 @@ backend/
 *.py
 base64_uris.json
 propuesta_mlbb_usil_v5_visualizable.html
-propuesta_mlbb_usil_v6_visualizable.html
 assets/characters/*.png
 public/assets/characters/*.png
 assets/logos/mlbb_anniversary_gold.png
@@ -16,9 +15,6 @@ assets/m4l/brandbook_logos_ref.png
 public/assets/m4l/brandbook_logos_ref.png
 assets/m4l/brandbook_palette_ref.png
 assets/flyer/usil_students_cutout.png
-public/assets/characters/*
-public/assets/flyer/*
-public/assets/logos/*
-public/assets/m4l/*
+
 
 

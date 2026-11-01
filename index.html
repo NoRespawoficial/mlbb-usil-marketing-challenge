@@ -994,20 +994,23 @@
             </div>
 
             <div class="mentor-specialty-pills" role="group" aria-label="Filtrar mentores por especialidad">
-              <button type="button" class="mentor-filter-btn is-active" data-specialty="all">
+              <button type="button" class="mentor-filter-btn is-active" data-specialty="all" aria-selected="true">
                 Todos (24)
               </button>
-              <button type="button" class="mentor-filter-btn" data-specialty="Branding & Concepto">
-                Branding & Concepto
+              <button type="button" class="mentor-filter-btn" data-specialty="Estrategia Digital" aria-selected="false">
+                Estrategia Digital
               </button>
-              <button type="button" class="mentor-filter-btn" data-specialty="Growth & Viralización">
-                Growth & Viralización
+              <button type="button" class="mentor-filter-btn" data-specialty="Branding & Concept Art" aria-selected="false">
+                Branding &amp; Concepto
               </button>
-              <button type="button" class="mentor-filter-btn" data-specialty="Dirección de Arte & Skins">
-                Dirección de Arte & Skins
+              <button type="button" class="mentor-filter-btn" data-specialty="TikTok & Growth Marketing" aria-selected="false">
+                Growth &amp; Viralización
               </button>
-              <button type="button" class="mentor-filter-btn" data-specialty="Estrategia Esports">
+              <button type="button" class="mentor-filter-btn" data-specialty="Esports & Metagame" aria-selected="false">
                 Estrategia Esports
+              </button>
+              <button type="button" class="mentor-filter-btn" data-specialty="Liderazgo & Pitch" aria-selected="false">
+                Liderazgo &amp; Pitch
               </button>
             </div>
 
@@ -1428,10 +1431,12 @@
                       <label for="mentorSpecialtySelect" class="form-label">Especialidad de Mentoría *</label>
                       <select id="mentorSpecialtySelect" name="mentor_specialty" class="form-input form-select" required>
                         <option value="">-- Selecciona Especialidad --</option>
-                        <option value="Branding & Concepto">Branding & Concepto</option>
-                        <option value="Growth & Viralización">Growth & Viralización</option>
-                        <option value="Dirección de Arte & Skins">Dirección de Arte & Skins</option>
-                        <option value="Estrategia Esports">Estrategia Esports</option>
+                        <option value="Estrategia Digital">Estrategia Digital</option>
+                        <option value="Branding & Concept Art">Branding &amp; Concept Art</option>
+                        <option value="Branding & Concepto">Branding &amp; Concepto (Dirección de Arte &amp; Skins)</option>
+                        <option value="TikTok & Growth Marketing">TikTok &amp; Growth Marketing</option>
+                        <option value="Esports & Metagame">Esports &amp; Metagame</option>
+                        <option value="Liderazgo & Pitch">Liderazgo &amp; Pitch</option>
                       </select>
                     </div>
                     <div class="form-group">

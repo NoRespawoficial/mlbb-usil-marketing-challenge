@@ -2952,6 +2952,11 @@
 
 .flip-card-3d.is-flipped .flip-card-front {
   pointer-events: none;
+  z-index: 1;
+}
+
+.flip-card-3d.is-flipped .flip-card-back {
+  z-index: 3;
 }
 
 .flip-card-back::before {
@@ -2968,7 +2973,15 @@
   margin-top: auto;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--sp-2);
+  width: 100%;
+}
+
+.flip-card-back-content > .badge,
+.flip-card-back-content > .slot-nov-badge {
+  width: fit-content;
+  align-self: flex-start;
 }
 
 .flip-cta-pill {
@@ -3303,9 +3316,15 @@
 .form-group {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: 0.35rem;
   min-width: 0;
   margin-bottom: var(--sp-3);
+}
+
+.form-group .form-input,
+.form-group .form-select {
+  margin-top: auto;
 }
 
 .form-row-2 .form-group,
@@ -3557,3 +3576,82 @@
     text-align: left;
   }
 }
+
+.footer-brand-col,
+.footer-links-col,
+.footer-contact-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.brand-usil {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.players-arena-zone,
+.mentor-strategy-zone {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.bento-champions,
+.bento-finalists,
+.bento-mentors {
+  height: 100%;
+}
+
+.mentor-select-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-clear-mentor {
+  background: rgba(248, 113, 113, 0.14);
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  border-radius: var(--radius-full);
+  color: #FCA5A5;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.btn-clear-mentor:hover {
+  background: rgba(248, 113, 113, 0.28);
+  color: #FFFFFF;
+}
+
+.player-nov2026-checkbox {
+  accent-color: var(--cyan);
+}
+
+.modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2);
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+}
+
+.modal-close-btn {
+  cursor: pointer;
+}
+

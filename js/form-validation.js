@@ -244,13 +244,17 @@ function selectMentorForRegistration(mentorId, mentorName) {
     selectedBanner.style.display = 'flex';
     selectedBanner.innerHTML = `
       <span>Mentor USIL / M4L Vinculado: <strong>${sanitizeInput(mentorName)} (${sanitizeInput(mentorId)})</strong> — Asesora tu estrategia digital</span>
-      <button type="button" class="btn-clear-mentor" id="btnClearMentorSelection" style="background:none;border:none;color:#F87171;cursor:pointer;font-weight:700;">Cambiar</button>
+      <button type="button" class="btn-clear-mentor" id="btnClearMentorSelection">Cambiar</button>
     `;
     const clearBtn = document.getElementById('btnClearMentorSelection');
     if (clearBtn) {
       clearBtn.addEventListener('click', () => {
-        if (mentorSelect) mentorSelect.value = '';
-        selectedBanner.style.display = 'none';
+        if (typeof window !== 'undefined' && typeof window.clearSelectedMentor === 'function') {
+          window.clearSelectedMentor();
+        } else {
+          if (mentorSelect) mentorSelect.value = '';
+          selectedBanner.style.display = 'none';
+        }
       });
     }
   }
@@ -482,6 +486,9 @@ function initFormValidation() {
     radio.addEventListener('change', () => {
       if (!mentorSelectWrap) return;
       if (radio.value === 'random' && radio.checked) {
+        if (typeof window !== 'undefined' && typeof window.clearSelectedMentor === 'function') {
+          window.clearSelectedMentor();
+        }
         mentorSelectWrap.style.opacity = '0.5';
         if (mentorSelect) {
           mentorSelect.disabled = true;

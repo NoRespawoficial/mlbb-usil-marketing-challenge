@@ -3613,6 +3613,11 @@ section,
 
 .flip-card-3d.is-flipped .flip-card-front {
   pointer-events: none;
+  z-index: 1;
+}
+
+.flip-card-3d.is-flipped .flip-card-back {
+  z-index: 3;
 }
 
 .flip-card-back::before {
@@ -3629,7 +3634,15 @@ section,
   margin-top: auto;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--sp-2);
+  width: 100%;
+}
+
+.flip-card-back-content > .badge,
+.flip-card-back-content > .slot-nov-badge {
+  width: fit-content;
+  align-self: flex-start;
 }
 
 .flip-cta-pill {
@@ -3964,9 +3977,15 @@ section,
 .form-group {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   gap: 0.35rem;
   min-width: 0;
   margin-bottom: var(--sp-3);
+}
+
+.form-group .form-input,
+.form-group .form-select {
+  margin-top: auto;
 }
 
 .form-row-2 .form-group,
@@ -4218,6 +4237,85 @@ section,
     text-align: left;
   }
 }
+
+.footer-brand-col,
+.footer-links-col,
+.footer-contact-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.brand-usil {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.players-arena-zone,
+.mentor-strategy-zone {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.bento-champions,
+.bento-finalists,
+.bento-mentors {
+  height: 100%;
+}
+
+.mentor-select-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-clear-mentor {
+  background: rgba(248, 113, 113, 0.14);
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  border-radius: var(--radius-full);
+  color: #FCA5A5;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.btn-clear-mentor:hover {
+  background: rgba(248, 113, 113, 0.28);
+  color: #FFFFFF;
+}
+
+.player-nov2026-checkbox {
+  accent-color: var(--cyan);
+}
+
+.modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2);
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+}
+
+.modal-close-btn {
+  cursor: pointer;
+}
+
 
 
 /* animations.css */
@@ -5380,20 +5478,23 @@ section,
             </div>
 
             <div class="mentor-specialty-pills" role="group" aria-label="Filtrar mentores por especialidad">
-              <button type="button" class="mentor-filter-btn is-active" data-specialty="all">
+              <button type="button" class="mentor-filter-btn is-active" data-specialty="all" aria-selected="true">
                 Todos (24)
               </button>
-              <button type="button" class="mentor-filter-btn" data-specialty="Branding & Concepto">
-                Branding & Concepto
+              <button type="button" class="mentor-filter-btn" data-specialty="Estrategia Digital" aria-selected="false">
+                Estrategia Digital
               </button>
-              <button type="button" class="mentor-filter-btn" data-specialty="Growth & Viralización">
-                Growth & Viralización
+              <button type="button" class="mentor-filter-btn" data-specialty="Branding & Concept Art" aria-selected="false">
+                Branding &amp; Concepto
               </button>
-              <button type="button" class="mentor-filter-btn" data-specialty="Dirección de Arte & Skins">
-                Dirección de Arte & Skins
+              <button type="button" class="mentor-filter-btn" data-specialty="TikTok & Growth Marketing" aria-selected="false">
+                Growth &amp; Viralización
               </button>
-              <button type="button" class="mentor-filter-btn" data-specialty="Estrategia Esports">
+              <button type="button" class="mentor-filter-btn" data-specialty="Esports & Metagame" aria-selected="false">
                 Estrategia Esports
+              </button>
+              <button type="button" class="mentor-filter-btn" data-specialty="Liderazgo & Pitch" aria-selected="false">
+                Liderazgo &amp; Pitch
               </button>
             </div>
 
@@ -5814,10 +5915,12 @@ section,
                       <label for="mentorSpecialtySelect" class="form-label">Especialidad de Mentoría *</label>
                       <select id="mentorSpecialtySelect" name="mentor_specialty" class="form-input form-select" required>
                         <option value="">-- Selecciona Especialidad --</option>
-                        <option value="Branding & Concepto">Branding & Concepto</option>
-                        <option value="Growth & Viralización">Growth & Viralización</option>
-                        <option value="Dirección de Arte & Skins">Dirección de Arte & Skins</option>
-                        <option value="Estrategia Esports">Estrategia Esports</option>
+                        <option value="Estrategia Digital">Estrategia Digital</option>
+                        <option value="Branding & Concept Art">Branding &amp; Concept Art</option>
+                        <option value="Branding & Concepto">Branding &amp; Concepto (Dirección de Arte &amp; Skins)</option>
+                        <option value="TikTok & Growth Marketing">TikTok &amp; Growth Marketing</option>
+                        <option value="Esports & Metagame">Esports &amp; Metagame</option>
+                        <option value="Liderazgo & Pitch">Liderazgo &amp; Pitch</option>
                       </select>
                     </div>
                     <div class="form-group">
@@ -7192,13 +7295,17 @@ function selectMentorForRegistration(mentorId, mentorName) {
     selectedBanner.style.display = 'flex';
     selectedBanner.innerHTML = `
       <span>Mentor USIL / M4L Vinculado: <strong>${sanitizeInput(mentorName)} (${sanitizeInput(mentorId)})</strong> — Asesora tu estrategia digital</span>
-      <button type="button" class="btn-clear-mentor" id="btnClearMentorSelection" style="background:none;border:none;color:#F87171;cursor:pointer;font-weight:700;">Cambiar</button>
+      <button type="button" class="btn-clear-mentor" id="btnClearMentorSelection">Cambiar</button>
     `;
     const clearBtn = document.getElementById('btnClearMentorSelection');
     if (clearBtn) {
       clearBtn.addEventListener('click', () => {
-        if (mentorSelect) mentorSelect.value = '';
-        selectedBanner.style.display = 'none';
+        if (typeof window !== 'undefined' && typeof window.clearSelectedMentor === 'function') {
+          window.clearSelectedMentor();
+        } else {
+          if (mentorSelect) mentorSelect.value = '';
+          selectedBanner.style.display = 'none';
+        }
       });
     }
   }
@@ -7430,6 +7537,9 @@ function initFormValidation() {
     radio.addEventListener('change', () => {
       if (!mentorSelectWrap) return;
       if (radio.value === 'random' && radio.checked) {
+        if (typeof window !== 'undefined' && typeof window.clearSelectedMentor === 'function') {
+          window.clearSelectedMentor();
+        }
         mentorSelectWrap.style.opacity = '0.5';
         if (mentorSelect) {
           mentorSelect.disabled = true;
