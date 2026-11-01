@@ -1,0 +1,30 @@
+# Agent & IDE directories
+.agents/
+.gemini/
+.vercel/
+node_modules/
+__pycache__/
+
+# Test artifacts, scripts & temporary files
+test/
+*.md
+*.py
+base64_uris.json
+propuesta_mlbb_usil_v5_visualizable.html
+
+# Uncompressed master PNGs (WebP thumbnails are used in production)
+*_master.png
+assets/characters/*.png
+public/assets/characters/*.png
+assets/logos/mlbb_anniversary_gold.png
+public/assets/logos/mlbb_anniversary_gold.png
+assets/logos/mlbb_anniversary_stacked.png
+public/assets/logos/mlbb_anniversary_stacked.png
+assets/m4l/brandbook_logos_ref.png
+public/assets/m4l/brandbook_logos_ref.png
+assets/m4l/brandbook_palette_ref.png
+public/assets/m4l/brandbook_palette_ref.png
+assets/flyer/usil_students_cutout.png
+public/assets/flyer/usil_students_cutout.png
+assets/flyer/esports_atmosphere_bg.png
+public/assets/flyer/esports_atmosphere_bg.png

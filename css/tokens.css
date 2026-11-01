@@ -1,0 +1,118 @@
+/* ==========================================================================
+   Design Tokens - "Crea la skin, gana la arena"
+   Tripartite Alliance: MLBB 10th Anniversary × USIL Marketing 20 Años × Club M4L
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Saira+Condensed:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+:root {
+  /* ------------------------------------------------------------------------
+     1. Core Dark Canvas Palette (Esports Arena Atmosphere)
+     ------------------------------------------------------------------------ */
+  --night: #070B24;          /* Primary canvas background */
+  --night2: #0D1440;         /* Elevated surface / card background */
+  --night3: #16206A;         /* Interactive hover / secondary surface */
+  --night-rgb: 7, 11, 36;
+  --night2-rgb: 13, 20, 64;
+  --night3-rgb: 22, 32, 106;
+
+  /* ------------------------------------------------------------------------
+     2. USIL Brand Palette (Institutional Authority & Legacy)
+     ------------------------------------------------------------------------ */
+  --usil: #1947BA;           /* USIL primary royal blue */
+  --usil-d: #102C80;         /* USIL deep navy shadow */
+  --usil-hi: #4C86FF;        /* USIL high-voltage active blue */
+  --usil-rgb: 25, 71, 186;
+  --usil-d-rgb: 16, 44, 128;
+  --usil-hi-rgb: 76, 134, 255;
+
+  /* ------------------------------------------------------------------------
+     3. Gaming Gold & Esports Accents (Prestige & Champions)
+     ------------------------------------------------------------------------ */
+  --gold: #F2B53D;           /* Champion gold accent & badges */
+  --gold-d: #B97F0B;         /* Deep antique gold shadow */
+  --gold-glow: rgba(242, 181, 61, 0.45);
+  --gold-rgb: 242, 181, 61;
+  --gold-d-rgb: 185, 127, 11;
+
+  /* ------------------------------------------------------------------------
+     4. MLBB Tech Cyan (Gaming Energy & Sci-Fi Borders)
+     ------------------------------------------------------------------------ */
+  --cyan: #3FD8F5;           /* Tech cyan highlight, focus rings */
+  --cyan-rgb: 63, 216, 245;
+  --cyan-glow: rgba(63, 216, 245, 0.45);
+
+  /* ------------------------------------------------------------------------
+     5. M4L Official Brand Book Palette (Club Identity)
+     ------------------------------------------------------------------------ */
+  --m4l-coral: #01D3D2;      /* Azul Coral M4L (Aqua Cyan) */
+  --m4l-blue: #025CE0;       /* Azul LinkedIn M4L */
+  --m4l-emerald: #137C53;    /* Emerald green (Verification / Nov 2026 badge) */
+  --m4l-coral-rgb: 1, 211, 210;
+  --m4l-blue-rgb: 2, 92, 224;
+  --m4l-emerald-rgb: 19, 124, 83;
+  --m4l-white: #FFFFFF;
+
+  /* ------------------------------------------------------------------------
+     6. Typography System
+     ------------------------------------------------------------------------ */
+  --font-display: 'Saira Condensed', -apple-system, BlinkMacSystemFont, 'Impact', sans-serif;
+  --font-body: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* ------------------------------------------------------------------------
+     7. Chamfer Dimensions (.cut geometry)
+     ------------------------------------------------------------------------ */
+  --cut-size: 16px;
+  --cut-sm-size: 10px;
+  --cut-lg-size: 24px;
+
+  /* ------------------------------------------------------------------------
+     8. Glassmorphic Surface System
+     ------------------------------------------------------------------------ */
+  --glass-bg: rgba(13, 20, 64, 0.72);
+  --glass-bg-hover: rgba(22, 32, 106, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-border-focus: rgba(63, 216, 245, 0.6);
+  --glass-blur: blur(16px);
+  --glass-blur-heavy: blur(24px);
+
+  /* ------------------------------------------------------------------------
+     9. Shadows & Elevation Tokens
+     ------------------------------------------------------------------------ */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.65);
+  --shadow-glow-cyan: 0 0 20px rgba(63, 216, 245, 0.35);
+  --shadow-glow-gold: 0 0 25px rgba(242, 181, 61, 0.4);
+  --shadow-glow-usil: 0 0 20px rgba(76, 134, 255, 0.35);
+
+  /* ------------------------------------------------------------------------
+     10. Spacing Scale (Mobile-First 4px Grid)
+     ------------------------------------------------------------------------ */
+  --sp-1: 0.25rem;   /* 4px */
+  --sp-2: 0.5rem;    /* 8px */
+  --sp-3: 0.75rem;   /* 12px */
+  --sp-4: 1rem;      /* 16px */
+  --sp-5: 1.25rem;   /* 20px */
+  --sp-6: 1.5rem;    /* 24px */
+  --sp-8: 2rem;      /* 32px */
+  --sp-10: 2.5rem;   /* 40px */
+  --sp-12: 3rem;     /* 48px */
+  --sp-16: 4rem;     /* 64px */
+  --sp-20: 5rem;     /* 80px */
+  --sp-24: 6rem;     /* 96px */
+
+  /* ------------------------------------------------------------------------
+     11. Radii & Layout Dimensions
+     ------------------------------------------------------------------------ */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Header Height Reference */
+  --header-height: 76px;
+  --header-height-mobile: 68px;
+}

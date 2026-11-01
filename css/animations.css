@@ -1,0 +1,100 @@
+/* ==========================================================================
+   Animations & Transitions - "Crea la skin, gana la arena"
+   Keyframes, Glowing borders, Hover effects, Floating hero, and Reduced Motion
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Floating Hero Keyframes
+   -------------------------------------------------------------------------- */
+@keyframes floatHero {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(0.4deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2. Glowing Breathing & Pulses
+   -------------------------------------------------------------------------- */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 4px 16px rgba(63, 216, 245, 0.35);
+  }
+  50% {
+    box-shadow: 0 6px 30px rgba(63, 216, 245, 0.65), 0 0 40px rgba(63, 216, 245, 0.3);
+  }
+}
+
+@keyframes pulseGoldGlow {
+  0%, 100% {
+    box-shadow: 0 4px 16px rgba(242, 181, 61, 0.35);
+  }
+  50% {
+    box-shadow: 0 6px 32px rgba(242, 181, 61, 0.65), 0 0 40px rgba(242, 181, 61, 0.35);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. Shimmer & Light Rays
+   -------------------------------------------------------------------------- */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. Gradient Border Shift
+   -------------------------------------------------------------------------- */
+@keyframes borderGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(63, 216, 245, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(63, 216, 245, 0.7));
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. Countdown Digit Update Transition
+   -------------------------------------------------------------------------- */
+.countdown-num.tick {
+  animation: countdownTick 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes countdownTick {
+  0% {
+    transform: scale(1.15);
+    color: var(--cyan);
+  }
+  100% {
+    transform: scale(1);
+    color: #FFFFFF;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   6. Reduced Motion Accessibility Rule
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .hero-character-img {
+    animation: none !important;
+  }
+}

@@ -1,0 +1,401 @@
+/* ==========================================================================
+   Layout Architecture - "Crea la skin, gana la arena"
+   Mobile-First Reset, Breakpoints (375px to 1440px+), Fluid Typography & Hero Grid
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Base Reset & Root Setup
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--night);
+  color: #FFFFFF;
+  font-family: var(--font-body);
+  font-size: clamp(0.9375rem, 0.9rem + 0.15vw, 1.0625rem);
+  line-height: 1.55;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(25, 71, 186, 0.22) 0%, transparent 60%),
+    radial-gradient(circle at 90% 25%, rgba(63, 216, 245, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 10% 75%, rgba(242, 181, 61, 0.08) 0%, transparent 40%);
+  background-attachment: fixed;
+}
+
+/* --------------------------------------------------------------------------
+   2. Typography Fluid Clamps & Hierarchy
+   -------------------------------------------------------------------------- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.hero-title {
+  font-size: clamp(2.25rem, 1.6rem + 2.8vw, 4.25rem);
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  color: #FFFFFF;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.7);
+}
+
+.section-title {
+  font-size: clamp(1.85rem, 1.3rem + 1.8vw, 3rem);
+  font-weight: 800;
+  margin-bottom: var(--sp-2);
+}
+
+.section-subtitle {
+  font-size: clamp(1rem, 0.92rem + 0.4vw, 1.25rem);
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 400;
+  max-width: 680px;
+}
+
+.highlight-cyan {
+  color: var(--cyan);
+  text-shadow: 0 0 16px rgba(63, 216, 245, 0.5);
+}
+
+.highlight-gold {
+  color: var(--gold);
+  text-shadow: 0 0 16px rgba(242, 181, 61, 0.5);
+}
+
+.highlight-usil {
+  color: var(--usil-hi);
+  text-shadow: 0 0 16px rgba(76, 134, 255, 0.5);
+}
+
+/* --------------------------------------------------------------------------
+   3. Container System & Breakpoints (375px Baseline to 1440px+)
+   -------------------------------------------------------------------------- */
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--sp-4);
+  padding-right: var(--sp-4);
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-left: var(--sp-6);
+    padding-right: var(--sp-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: var(--sp-8);
+    padding-right: var(--sp-8);
+  }
+}
+
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1360px;
+  }
+}
+
+/* Section Spacing */
+section {
+  padding: var(--sp-12) 0;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  section {
+    padding: var(--sp-16) 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  section {
+    padding: var(--sp-20) 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. Hero Section Layout
+   -------------------------------------------------------------------------- */
+.hero-section {
+  min-height: 100vh;
+  padding-top: calc(var(--header-height) + var(--sp-6));
+  padding-bottom: var(--sp-12);
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .hero-section {
+    padding-top: calc(var(--header-height) + var(--sp-10));
+    padding-bottom: var(--sp-16);
+  }
+}
+
+/* Background Atmospheric Overlay */
+.hero-bg-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.28;
+  background-image: 
+    linear-gradient(rgba(7, 11, 36, 0.4) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(7, 11, 36, 0.4) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.hero-glow-usil {
+  position: absolute;
+  top: 15%;
+  left: 10%;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(25, 71, 186, 0.25) 0%, transparent 70%);
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-glow-cyan {
+  position: absolute;
+  bottom: 10%;
+  right: 15%;
+  width: 450px;
+  height: 450px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(63, 216, 245, 0.2) 0%, transparent 70%);
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Hero Two-Column Grid */
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-8);
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .hero-grid {
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: var(--sp-10);
+  }
+}
+
+/* Left Column: Hero Content */
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.hero-badge-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+}
+
+.hero-tagline {
+  font-size: clamp(1rem, 0.95rem + 0.35vw, 1.25rem);
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.6;
+}
+
+.hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  align-items: center;
+  margin-top: var(--sp-4);
+}
+
+.hero-highlights-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-2);
+  margin-top: var(--sp-6);
+  padding-top: var(--sp-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.highlight-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.highlight-item-val {
+  font-family: var(--font-display);
+  font-size: clamp(1.125rem, 1rem + 0.4vw, 1.5rem);
+  font-weight: 800;
+  color: var(--cyan);
+}
+
+.highlight-item-lbl {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.2;
+}
+
+/* Right Column: Hero Visual Showcase */
+.hero-visual {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-visual-frame {
+  position: relative;
+  width: 100%;
+  max-width: 580px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-4);
+}
+
+/* 3D Gold Anniversary Logo Floating Above */
+.hero-gold-logo-wrap {
+  width: 100%;
+  max-width: 360px;
+  margin-bottom: 0;
+  z-index: 2;
+  position: relative;
+  filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.65));
+}
+
+.hero-gold-logo {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Layla Key Character Visual */
+.hero-character-picture {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  z-index: 1;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid rgba(63, 216, 245, 0.35);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.75), 0 0 36px rgba(63, 216, 245, 0.22);
+}
+
+.hero-character-img {
+  width: 100%;
+  height: auto;
+  max-height: 520px;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 12px 30px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 40px rgba(63, 216, 245, 0.2));
+  animation: floatHero 6s ease-in-out infinite;
+}
+
+@media (max-width: 639px) {
+  .hero-character-img {
+    max-height: 360px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. Placeholder Section Shells (Downstream Handover to M3 & M4)
+   -------------------------------------------------------------------------- */
+.section-header {
+  text-align: center;
+  margin-bottom: var(--sp-10);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-6);
+}
+
+@media (min-width: 768px) {
+  .grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-6);
+}
+
+@media (min-width: 640px) {
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Footer Shell */
+.site-footer {
+  background: #040716;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: var(--sp-8) 0;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  align-items: center;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .footer-content {
+    flex-direction: row;
+    justify-content: space-between;
+    text-align: left;
+  }
+}
