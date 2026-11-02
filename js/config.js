@@ -2,12 +2,13 @@
  * ============================================================================
  * MARKETING GAMING CHALLENGE 2026 — GLOBAL CONTEST CONFIGURATION (v6)
  * Alianza Oficial: Mobile Legends: Bang Bang x USIL (Marketing) x Club M4L
- * Sincronizado con: Bases_Oficiales_Marketing_Gaming_Challenge_USIL_MLBB (V3)
+ * Sincronizado con las Bases Oficiales del Concurso 2026
  * ============================================================================
  */
 const CONTEST_CONFIG = {
   contestTitle: 'MARKETING GAMING CHALLENGE',
   contestSubtitle: 'Diseña tu skin y desarrolla tu estrategia digital para clasificar tu squad al torneo de MLBB',
+  prizesHeadline: 'MÁS DE 84,000 DIAMANTES MLBB Y DESCUENTOS EN TU PRÓXIMA CARRERA UNIVERSITARIA',
   registrationOpenDate: '2026-11-02T00:00:00-05:00',
   registrationCloseDate: '2026-12-02T23:59:59-05:00',
   finalistsAnnounceDate: '2026-12-04T18:00:00-05:00',
@@ -43,13 +44,13 @@ const CONTEST_CONFIG = {
       step: 'HITO 01',
       dateLabel: '02 de Noviembre de 2026',
       title: 'Apertura de Registros',
-      description: 'Inicio de inscripciones web de escuadras escolares (5+1) y habilitación del directorio de Mentores USIL / Club M4L.'
+      description: 'Inicio de inscripciones web para escuadras de 5 jóvenes de 15 a 17 años (escolares o recién egresados) + 1 Mentor USIL / Club M4L.'
     },
     {
       step: 'HITO 02',
       dateLabel: '02 de Diciembre de 2026',
       title: 'Cierre de Convocatoria',
-      description: 'Fecha límite para registrar a tu squad y publicar el diseño de tu Skin con el hashtag #USILMarketingGamingMLBB.'
+      description: 'Fecha límite para registrar a tu squad, enviar tu Estrategia de Marketing Digital y publicar el diseño de tu Skin con #USILMarketingGamingMLBB.'
     },
     {
       step: 'HITO 03',
@@ -61,15 +62,16 @@ const CONTEST_CONFIG = {
       step: 'HITO 04',
       dateLabel: '09 de Diciembre de 2026 (4:30 p. m.)',
       title: 'Gran Final & Torneo Presencial',
-      description: 'Torneo presencial 5v5 en el Campus USIL (La Molina — Campus Miguel Grau) y Ceremonia Oficial de Premiación.'
+      description: 'Torneo presencial 5v5 en sus propios teléfonos móviles en el Campus USIL (La Molina — Campus Miguel Grau) y Ceremonia Oficial de Premiación.'
     }
   ],
 
   mentorEpgBenefit: {
-    discountPercentage: 25,
-    status: 'Beneficio Oficial Vigente (Final Presencial: miércoles 9 de diciembre de 2026)',
-    programTypes: 'Maestrías y Diplomados de la Escuela de Posgrado (EPG USIL)',
-    terms: 'Otorgado a los estudiantes universitarios de USIL y miembros del Club M4L que lideren una escuadra escolar clasificada a la Fase 2 (Gran Final Presencial en Campus USIL).'
+    headline: 'Hasta 7,000 💎 + Photobook Oficial',
+    moontonRewards: 'Hasta 7,000 Diamantes MLBB (5,000 en Torneo + 2,000 en Diseño de Skin para el Mentor Top 1; 4,200 Top 2; 2,800 Top 3) + Photobook Oficial Conmemorativo de MLBB.',
+    status: 'Certificación y Beneficios USIL',
+    programTypes: 'Recompensas Oficiales Moonton Games + Certificación y Beneficios USIL',
+    terms: 'Certificado oficial de liderazgo estratégico (USIL × Moonton Games × Club M4L) + Beneficios y descuentos académicos USIL (en confirmación oficial).'
   },
 
   contactEmail: 'clubmarketing@usil.pe',

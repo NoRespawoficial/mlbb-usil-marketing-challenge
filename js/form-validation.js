@@ -2,10 +2,10 @@
  * ============================================================================
  * MARKETING GAMING CHALLENGE 2026 — FORM VALIDATION, SECURITY & CLOUD SYNC (v6)
  * Reglas:
- * - Edad estricta escolar: 15 <= edad <= 17 años (5 titulares)
+ * - Edad estricta: 15 <= edad <= 17 años cumplidos (5 jugadores en cancha, escolares o recién egresados)
  * - Cuentas nuevas MLBB: Mínimo 3 de 5 jugadores con cuenta Noviembre 2026
  * - Correo institucional Mentor USIL: obligatorio dominio @usil.pe
- * - Hashtag oficial Fase 1: #USILMarketingGamingMLBB
+ * - Hashtag oficial Fase 1: #USILMarketingGamingMLBB + enlace de Estrategia Digital (strategy_doc_link)
  * - Seguridad: Sanitización XSS, Honeypot anti-bots, Debounce anti-doble clic
  * - Persistencia Híbrida: Envío paralelo a Google Sheets Webhook + Supabase RLS
  *   con respaldo local en localStorage y cola de reintento offline automática.
@@ -84,7 +84,7 @@ function validateSquadRegistration(payload) {
     errors.push('El nombre del Squad es obligatorio (mínimo 2 caracteres).');
   }
   if (!payload.school_name || String(payload.school_name).trim().length < 2) {
-    errors.push('El nombre del Colegio es obligatorio.');
+    errors.push('El Colegio de Procedencia (actual o de egreso) es obligatorio.');
   }
   if (!payload.school_district || String(payload.school_district).trim().length < 2) {
     errors.push('El distrito o ciudad del colegio es obligatorio.');
@@ -92,19 +92,31 @@ function validateSquadRegistration(payload) {
   if (!payload.social_link || !/^https?:\/\/.+/i.test(String(payload.social_link).trim())) {
     errors.push('Debes ingresar el enlace público (URL) de la publicación con el hashtag #USILMarketingGamingMLBB.');
   }
+  if (payload.strategy_doc_link !== undefined) {
+    if (!payload.strategy_doc_link || !/^https?:\/\/.+/i.test(String(payload.strategy_doc_link).trim())) {
+      errors.push('Debes ingresar el enlace a tu Propuesta de Estrategia Digital y Diseño de Skin (Google Drive / Canva / PDF).');
+    }
+  }
 
   const validModes = ['choose', 'direct', 'random'];
   if (!validModes.includes(payload.mentor_mode)) {
     errors.push('Selecciona una modalidad de asignación de Mentor USIL.');
   }
-  if ((payload.mentor_mode === 'choose' || payload.mentor_mode === 'direct') &&
+  if (payload.mentor_mode === 'choose' &&
       (!payload.mentor_id || String(payload.mentor_id).trim() === '')) {
-    errors.push('Debes elegir un Mentor USIL del directorio o ingresar su código.');
+    errors.push('Debes elegir una especialidad de Mentor USIL / Club M4L del directorio.');
+  }
+  if (payload.mentor_mode === 'direct') {
+    const hasCustom = payload.custom_mentor_name && String(payload.custom_mentor_name).trim().length >= 2;
+    const hasMentorId = payload.mentor_id && String(payload.mentor_id).trim().length >= 2;
+    if (!hasCustom && !hasMentorId) {
+      errors.push('Debes escribir el Nombre o Código de tu Mentor USIL.');
+    }
   }
 
   const players = payload.players;
   if (!Array.isArray(players) || players.length !== 5) {
-    errors.push('El equipo debe registrar exactamente 5 jugadores escolares titulares.');
+    errors.push('El equipo debe registrar exactamente 5 jugadores titulares de 15 a 17 años.');
   } else {
     players.forEach((p, idx) => {
       const num = idx + 1;
@@ -112,7 +124,7 @@ function validateSquadRegistration(payload) {
         errors.push(`Jugador ${num}: Nombre completo obligatorio.`);
       }
       if (!validateAge(p.age)) {
-        errors.push(`Jugador ${num}: La edad debe estar estrictamente entre 15 y 17 años (ingresado: ${p.age ?? 'vacío'}).`);
+        errors.push(`Jugador ${num}: La edad debe estar estrictamente entre 15 y 17 años cumplidos (ingresado: ${p.age ?? 'vacío'}).`);
       }
       if (!validateDni(p.dni)) {
         errors.push(`Jugador ${num}: El DNI debe tener exactamente 8 dígitos numéricos.`);
@@ -135,7 +147,7 @@ function validateSquadRegistration(payload) {
   }
 
   if (!payload.terms_accepted) {
-    errors.push('Debes declarar la autorización de padres/tutores o docente responsable y aceptar las Bases Oficiales V3.');
+    errors.push('Debes declarar la autorización de padres/tutores o docente responsable y aceptar las Bases Oficiales.');
   }
 
   return {
@@ -243,7 +255,7 @@ function selectMentorForRegistration(mentorId, mentorName) {
   if (selectedBanner) {
     selectedBanner.style.display = 'flex';
     selectedBanner.innerHTML = `
-      <span>Mentor USIL / M4L Vinculado: <strong>${sanitizeInput(mentorName)} (${sanitizeInput(mentorId)})</strong> — Asesora tu estrategia digital</span>
+      <span>Especialidad M4L / Mentor Vinculado: <strong>${sanitizeInput(mentorName)} (${sanitizeInput(mentorId)})</strong> — Asesora tu estrategia digital</span>
       <button type="button" class="btn-clear-mentor" id="btnClearMentorSelection">Cambiar</button>
     `;
     const clearBtn = document.getElementById('btnClearMentorSelection');
@@ -384,9 +396,11 @@ async function dispatchToCloudBackends(type, record, options) {
           school_name: record.school_name,
           school_district: record.school_district,
           social_link: record.social_link,
+          strategy_doc_link: record.strategy_doc_link || '',
           official_hashtag: '#USILMarketingGamingMLBB',
           mentor_mode: record.mentor_mode,
           mentor_id: record.mentor_id,
+          custom_mentor_name: record.custom_mentor_name || '',
           nov2026_count: record.nov2026_count,
           players: record.players,
           parental_consent_accepted: true,
@@ -460,11 +474,11 @@ function populateSchoolMentorDropdown() {
   const mentorSelect = document.getElementById('schoolMentorSelect');
   if (!mentorSelect || typeof MENTORES_DATA === 'undefined') return;
 
-  mentorSelect.innerHTML = '<option value="">-- Selecciona un Mentor USIL / Club M4L --</option>';
+  mentorSelect.innerHTML = '<option value="">-- Selecciona un Perfil de Especialidad M4L --</option>';
   MENTORES_DATA.forEach(m => {
     const opt = document.createElement('option');
     opt.value = m.id;
-    opt.textContent = `${m.id} — ${m.name} (${m.career} | ${m.specialty})`;
+    opt.textContent = `${m.id} — ${m.name} (${m.career})`;
     mentorSelect.appendChild(opt);
   });
 }
@@ -481,30 +495,64 @@ function initFormValidation() {
   const modeRadios = document.querySelectorAll('input[name="mentor_mode"]');
   const mentorSelectWrap = document.getElementById('mentorSelectWrapper');
   const mentorSelect = document.getElementById('schoolMentorSelect');
+  const customMentorWrap = document.getElementById('customMentorWrapper');
+  const customMentorInput = document.getElementById('customMentorNameInput');
 
-  modeRadios.forEach(radio => {
-    radio.addEventListener('change', () => {
-      if (!mentorSelectWrap) return;
-      if (radio.value === 'random' && radio.checked) {
-        if (typeof window !== 'undefined' && typeof window.clearSelectedMentor === 'function') {
-          window.clearSelectedMentor();
-        }
+  function syncMentorModeControls() {
+    const checkedRadio = document.querySelector('input[name="mentor_mode"]:checked');
+    const mode = checkedRadio ? checkedRadio.value : 'choose';
+
+    if (mode === 'direct') {
+      if (customMentorWrap) customMentorWrap.style.display = 'flex';
+      if (customMentorInput) {
+        customMentorInput.disabled = false;
+        customMentorInput.required = true;
+      }
+      if (mentorSelectWrap) mentorSelectWrap.style.display = 'none';
+      if (mentorSelect) {
+        mentorSelect.disabled = true;
+      }
+    } else if (mode === 'random') {
+      if (typeof window !== 'undefined' && typeof window.clearSelectedMentor === 'function') {
+        window.clearSelectedMentor();
+      }
+      if (customMentorWrap) customMentorWrap.style.display = 'none';
+      if (customMentorInput) {
+        customMentorInput.disabled = true;
+        customMentorInput.required = false;
+      }
+      if (mentorSelectWrap) {
+        mentorSelectWrap.style.display = 'flex';
         mentorSelectWrap.style.opacity = '0.5';
-        if (mentorSelect) {
-          mentorSelect.disabled = true;
-          mentorSelect.value = 'ASIGNACION_ALEATORIA_M4L';
-        }
-      } else if (radio.checked) {
+      }
+      if (mentorSelect) {
+        mentorSelect.disabled = true;
+        mentorSelect.value = 'ASIGNACION_ALEATORIA_M4L';
+      }
+    } else {
+      // mode === 'choose'
+      if (customMentorWrap) customMentorWrap.style.display = 'none';
+      if (customMentorInput) {
+        customMentorInput.disabled = true;
+        customMentorInput.required = false;
+      }
+      if (mentorSelectWrap) {
+        mentorSelectWrap.style.display = 'flex';
         mentorSelectWrap.style.opacity = '1';
-        if (mentorSelect) {
-          mentorSelect.disabled = false;
-          if (mentorSelect.value === 'ASIGNACION_ALEATORIA_M4L') {
-            mentorSelect.value = '';
-          }
+      }
+      if (mentorSelect) {
+        mentorSelect.disabled = false;
+        if (mentorSelect.value === 'ASIGNACION_ALEATORIA_M4L') {
+          mentorSelect.value = '';
         }
       }
-    });
+    }
+  }
+
+  modeRadios.forEach(radio => {
+    radio.addEventListener('change', syncMentorModeControls);
   });
+  syncMentorModeControls();
 
   const schoolForm = document.getElementById('schoolSquadForm');
   if (schoolForm) {
@@ -532,6 +580,8 @@ function handleSchoolFormSubmit(e) {
   const selectedModeEl = form.querySelector('input[name="mentor_mode"]:checked');
   const mentorMode = selectedModeEl ? selectedModeEl.value : 'choose';
   const mentorSelect = document.getElementById('schoolMentorSelect');
+  const customMentorInput = form.querySelector('[name="custom_mentor_name"]');
+  const customMentorName = cleanPlainText(customMentorInput?.value || '');
 
   const players = [];
   for (let i = 1; i <= 5; i++) {
@@ -546,14 +596,22 @@ function handleSchoolFormSubmit(e) {
     });
   }
 
+  const resolvedMentorId = mentorMode === 'random'
+    ? 'ASIGNACION_ALEATORIA_M4L'
+    : (mentorMode === 'direct'
+        ? (customMentorName || cleanPlainText(mentorSelect?.value || ''))
+        : cleanPlainText(mentorSelect?.value || ''));
+
   const payload = {
     website_hp: form.querySelector('[name="website_hp"]')?.value || '',
     team_name: cleanPlainText(form.querySelector('[name="team_name"]')?.value || ''),
     school_name: cleanPlainText(form.querySelector('[name="school_name"]')?.value || ''),
     school_district: cleanPlainText(form.querySelector('[name="school_district"]')?.value || ''),
     social_link: cleanPlainText(form.querySelector('[name="social_link"]')?.value || ''),
+    strategy_doc_link: cleanPlainText(form.querySelector('[name="strategy_doc_link"]')?.value || ''),
     mentor_mode: mentorMode,
-    mentor_id: mentorMode === 'random' ? 'ASIGNACION_ALEATORIA_M4L' : cleanPlainText(mentorSelect?.value || ''),
+    mentor_id: resolvedMentorId,
+    custom_mentor_name: customMentorName,
     players,
     terms_accepted: Boolean(form.querySelector('[name="terms_accepted"]')?.checked)
   };
@@ -602,7 +660,7 @@ function handleSchoolFormSubmit(e) {
     feedbackBox.className = 'form-feedback is-success';
     feedbackBox.innerHTML = `
       <strong>¡Escuadrón "${sanitizeInput(payload.team_name)}" registrado con éxito!</strong>
-      <p>Código de Ticket Oficial: <code>${sanitizeInput(ticketId)}</code> | Colegio: <strong>${sanitizeInput(payload.school_name)}</strong></p>
+      <p>Código de Ticket Oficial: <code>${sanitizeInput(ticketId)}</code> | Colegio de Procedencia: <strong>${sanitizeInput(payload.school_name)}</strong></p>
       <p>Cuentas Nuevas Nov 2026 verificadas: <strong>${novCount}/5</strong> | Mentor USIL / M4L: <strong>${sanitizeInput(payload.mentor_id)}</strong></p>
       <p id="schoolCloudSyncStatus" style="font-size:0.82rem;color:#01D3D2;margin-top:0.35rem;">✓ Respaldo local activo y sincronizando con Google Sheets + Supabase RLS...</p>
       <button type="button" class="btn btn-cyan btn-sm cut-corner-sm" onclick="window.printTicketConfirmation && window.printTicketConfirmation('${sanitizeInput(ticketId)}')" style="margin-top:0.5rem;">🖨️ Imprimir Ticket (${sanitizeInput(ticketId)})</button>
@@ -696,7 +754,7 @@ function handleMentorFormSubmit(e) {
     feedbackBox.innerHTML = `
       <strong>¡Postulación de Mentor USIL / Club M4L recibida!</strong>
       <p>Bienvenido(a), <strong>${sanitizeInput(applicant.name)}</strong> (${sanitizeInput(applicant.email)}). Código de Referencia: <code>${sanitizeInput(refCode)}</code>.</p>
-      <p>El equipo del Club M4L validará tu código USIL para habilitarte en la Bolsa Oficial de Mentores y activar tu elegibilidad al beneficio de 25% de descuento en la EPG USIL.</p>
+      <p>El equipo del Club M4L validará tu código USIL para asignarte una escuadra y activar tu elegibilidad por hasta 7,000 Diamantes MLBB, Photobook Oficial, Certificado de Liderazgo y beneficios académicos USIL.</p>
       <p id="mentorCloudSyncStatus" style="font-size:0.82rem;color:#01D3D2;margin-top:0.35rem;">✓ Respaldo local activo y sincronizando con Google Sheets + Supabase RLS...</p>
       <button type="button" class="btn btn-cyan btn-sm cut-corner-sm" onclick="window.printTicketConfirmation && window.printTicketConfirmation('${sanitizeInput(refCode)}')" style="margin-top:0.5rem;">🖨️ Imprimir Constancia (${sanitizeInput(refCode)})</button>
     `;
@@ -769,4 +827,3 @@ if (typeof module !== 'undefined' && module.exports) {
     initFormValidation
   };
 }
-

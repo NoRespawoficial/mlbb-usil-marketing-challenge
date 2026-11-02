@@ -29,11 +29,12 @@ var SQUAD_HEADERS = [
   'Fecha_Hora_ISO',
   'Ticket_ID',
   'Nombre_Squad',
-  'Colegio',
+  'Colegio_Procedencia',
   'Distrito_Colegio',
   'Link_Publicacion_Skin (#USILMarketingGamingMLBB)',
+  'Link_Estrategia_Digital_Skin (Drive/Canva/PDF)',
   'Modalidad_Mentor',
-  'ID_Mentor_Asignado',
+  'ID_o_Nombre_Mentor_Asignado',
   'Cuentas_Nov2026_Count',
   'Capitan_J1_Nombre',
   'Capitan_J1_Edad',
@@ -137,7 +138,7 @@ function doGet(e) {
   return buildJsonResponse({
     ok: true,
     service: 'MARKETING GAMING CHALLENGE 2026 — Webhook Oficial USIL x MLBB x Club M4L',
-    version: '6.0.0',
+    version: '6.1.0',
     sheets: [SHEET_NAMES.SQUADS, SHEET_NAMES.MENTORS],
     timestamp: new Date().toISOString()
   });
@@ -175,7 +176,7 @@ function doPost(e) {
       return buildJsonResponse({
         ok: false,
         error: 'TERMS_NOT_ACCEPTED',
-        message: 'Es obligatorio aceptar las Bases Oficiales V3 y la cláusula de Ley N° 29733.'
+        message: 'Es obligatorio aceptar las Bases Oficiales y la cláusula de Ley N° 29733.'
       });
     }
 
@@ -218,14 +219,14 @@ function doPost(e) {
       });
     }
 
-    // Por defecto: Registro de Escuadrón Escolar (5 Escolares + 1 Mentor USIL/M4L)
+    // Por defecto: Registro de Escuadrón (5 Jugadores de 15-17 años + 1 Mentor USIL/M4L)
     var players = Array.isArray(body.players) ? body.players : [];
     var novCount = Number(body.nov2026_count || players.filter(function(p) { return p && p.is_nov2026; }).length || 0);
     if (players.length !== 5 || novCount < 3) {
       return buildJsonResponse({
         ok: false,
         error: 'INVALID_SQUAD_RULES',
-        message: 'El escuadrón debe contar con 5 jugadores escolares y al menos 3 cuentas de noviembre de 2026.'
+        message: 'El escuadrón debe contar con 5 jugadores de 15 a 17 años y al menos 3 cuentas de noviembre de 2026.'
       });
     }
 
@@ -238,8 +239,9 @@ function doPost(e) {
       sanitizeCell(body.school_name || ''),
       sanitizeCell(body.school_district || ''),
       sanitizeCell(body.social_link || ''),
+      sanitizeCell(body.strategy_doc_link || ''),
       sanitizeCell(body.mentor_mode || ''),
-      sanitizeCell(body.mentor_id || 'ASIGNACION_BOLSA_M4L'),
+      sanitizeCell(body.custom_mentor_name || body.mentor_id || 'ASIGNACION_BOLSA_M4L'),
       novCount
     ];
 

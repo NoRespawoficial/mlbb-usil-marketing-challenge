@@ -17,9 +17,11 @@ CREATE TABLE IF NOT EXISTS public.squad_registrations (
     school_name VARCHAR(120) NOT NULL CHECK (char_length(trim(school_name)) >= 2),
     school_district VARCHAR(80) NOT NULL CHECK (char_length(trim(school_district)) >= 2),
     social_link TEXT NOT NULL CHECK (social_link ~* '^https?://'),
+    strategy_doc_link TEXT DEFAULT '',
     official_hashtag VARCHAR(64) NOT NULL DEFAULT '#USILMarketingGamingMLBB',
     mentor_mode VARCHAR(32) NOT NULL CHECK (mentor_mode IN ('choose', 'direct', 'random')),
-    mentor_id VARCHAR(64) NOT NULL,
+    mentor_id VARCHAR(120) NOT NULL,
+    custom_mentor_name VARCHAR(120) DEFAULT '',
     nov2026_count SMALLINT NOT NULL CHECK (nov2026_count >= 3 AND nov2026_count <= 5),
     players JSONB NOT NULL CHECK (jsonb_typeof(players) = 'array' AND jsonb_array_length(players) = 5),
     parental_consent_accepted BOOLEAN NOT NULL DEFAULT TRUE CHECK (parental_consent_accepted = TRUE),
@@ -29,7 +31,7 @@ CREATE TABLE IF NOT EXISTS public.squad_registrations (
 );
 
 COMMENT ON TABLE public.squad_registrations IS
-'Registro oficial de escuadras escolares (5 jugadores de 15-17 años + 1 Mentor USIL/M4L) para el Marketing Gaming Challenge 2026.';
+'Registro oficial de escuadras (5 jóvenes de 15-17 años, escolares o recién egresados + 1 Mentor USIL/M4L) para el Marketing Gaming Challenge 2026.';
 
 CREATE INDEX IF NOT EXISTS idx_squad_registrations_created_at
     ON public.squad_registrations (created_at DESC);
@@ -66,7 +68,7 @@ CREATE INDEX IF NOT EXISTS idx_mentor_applications_email
 -- 3. SEGURIDAD DE FILAS (ROW LEVEL SECURITY — LEY N° 29733)
 -- Regla: El cliente público (`anon`) SOLO puede insertar registros válidos.
 -- NINGÚN usuario anónimo puede leer (SELECT), actualizar (UPDATE) ni borrar (DELETE)
--- datos personales de escolares ni mentores desde el navegador.
+-- datos personales de participantes ni mentores desde el navegador.
 -- ============================================================================
 
 ALTER TABLE public.squad_registrations ENABLE ROW LEVEL SECURITY;
@@ -80,7 +82,7 @@ REVOKE SELECT, UPDATE, DELETE ON public.mentor_applications FROM anon;
 GRANT INSERT ON public.squad_registrations TO anon, authenticated;
 GRANT INSERT ON public.mentor_applications TO anon, authenticated;
 
--- Políticas de inserción anónima validada para Escuadras Escolares
+-- Políticas de inserción anónima validada para Escuadras
 DROP POLICY IF EXISTS "allow_anon_insert_squad_registrations" ON public.squad_registrations;
 CREATE POLICY "allow_anon_insert_squad_registrations"
     ON public.squad_registrations

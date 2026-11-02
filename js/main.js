@@ -2,8 +2,8 @@
  * ============================================================================
  * MARKETING GAMING CHALLENGE 2026 — MAIN INITIALIZER & GAMIFICATION ENGINE (v6)
  * Incluye:
- * - Parameterized EPG Benefit Banner
- * - Carrusel Interactivo de Héroes MLBB en el Hero (Swipe + Controles + Auto-rotación)
+ * - Parameterized Mentor Incentives Banner
+ * - Carrusel Interactivo de 9 Héroes Oficiales de MLBB en el Hero (Swipe + Controles + Auto-rotación)
  * - Tarjetas Flip 3D Interactivas (`transform-style: preserve-3d`, `rotateY(180deg)`)
  *   al hacer clic o toque en Mecánica, Roles 5+1 y Premios
  * ============================================================================
@@ -13,19 +13,25 @@ function syncParameterizedEpgBenefitUI() {
   if (typeof CONTEST_CONFIG === 'undefined' || !CONTEST_CONFIG.mentorEpgBenefit) return;
   const epg = CONTEST_CONFIG.mentorEpgBenefit;
 
-  const pctNodes = document.querySelectorAll('[data-epg-discount-pct]');
-  pctNodes.forEach(node => {
-    node.textContent = `${epg.discountPercentage}%`;
+  const titleNodes = document.querySelectorAll('[data-mentor-reward-title]');
+  titleNodes.forEach(node => {
+    if (epg.headline) {
+      node.textContent = epg.headline;
+    }
   });
 
   const statusNodes = document.querySelectorAll('[data-epg-status-text]');
   statusNodes.forEach(node => {
-    node.textContent = epg.status;
+    if (epg.status) {
+      node.textContent = epg.status;
+    }
   });
 
   const programNodes = document.querySelectorAll('[data-epg-programs]');
   programNodes.forEach(node => {
-    node.textContent = epg.programTypes;
+    if (epg.programTypes) {
+      node.textContent = epg.programTypes;
+    }
   });
 }
 

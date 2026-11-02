@@ -5,22 +5,24 @@
 
 const SPECIALTIES = [
   'Todas',
-  'Estrategia Digital',
-  'Branding & Concept Art',
-  'TikTok & Growth Marketing',
-  'Esports & Metagame',
-  'Liderazgo & Pitch'
+  'Branding & Concepto',
+  'Growth & Viralización',
+  'Dirección de Arte & Skins',
+  'Estrategia Esports & Pitch'
 ];
 
 const AVAILABILITY_FILTERS = ['Todas', 'Disponibles'];
 
 const SPECIALTY_ALIASES = {
   'all': 'Todas',
-  'todas': 'Todas',
-  'branding & concepto': 'Branding & Concept Art',
-  'dirección de arte & skins': 'Branding & Concept Art',
-  'growth & viralización': 'TikTok & Growth Marketing',
-  'estrategia esports': 'Esports & Metagame'
+  'todas': 'Todas'
+};
+
+const SPECIALTY_EQUIVALENTS = {
+  'Branding & Concepto': ['Branding & Concepto', 'Branding & Concept Art', 'Estrategia Digital'],
+  'Growth & Viralización': ['Growth & Viralización', 'TikTok & Growth Marketing', 'Estrategia Digital'],
+  'Dirección de Arte & Skins': ['Dirección de Arte & Skins', 'Branding & Concept Art'],
+  'Estrategia Esports & Pitch': ['Estrategia Esports & Pitch', 'Esports & Metagame', 'Liderazgo & Pitch']
 };
 
 let currentSpecialty = 'Todas';
@@ -41,7 +43,7 @@ function resolveMentorsDataset() {
 function normalizeSpecialtyFilter(spec) {
   if (!spec) return 'Todas';
   const key = String(spec).trim().toLowerCase();
-  return SPECIALTY_ALIASES[key] || spec;
+  return SPECIALTY_ALIASES[key] || String(spec).trim();
 }
 
 /**
@@ -53,8 +55,11 @@ function filterMentors(mentors, specialty = 'Todas', availability = 'Todas', que
   const q = String(query || '').trim().toLowerCase();
 
   return source.filter((m) => {
-    if (normalizedSpec !== 'Todas' && m.specialty !== normalizedSpec) {
-      return false;
+    if (normalizedSpec !== 'Todas') {
+      const equivalents = SPECIALTY_EQUIVALENTS[normalizedSpec] || [normalizedSpec];
+      if (m.specialty !== normalizedSpec && !equivalents.includes(m.specialty)) {
+        return false;
+      }
     }
 
     if (availability === 'Disponibles' && m.availability !== 'disponible') {
@@ -104,7 +109,7 @@ function createMentorCardMarkup(m) {
 
   const btnMarkup = isAvailable
     ? `<button type="button" class="btn btn-sm btn-primary cut-btn mentor-select-btn" data-mentor-id="${m.id}" data-mentor-name="${m.name}" aria-label="Elegir a ${m.name} como mentor">
-        <span>${isSelected ? '✓ Mentor Elegido' : 'Elegir como mi Mentor'}</span>
+        <span>${isSelected ? '✓ Especialidad Elegida' : 'Elegir esta Especialidad M4L'}</span>
       </button>`
     : `<button type="button" class="btn btn-sm btn-secondary cut-btn mentor-select-btn" disabled aria-label="Mentor no disponible">
         <span>${m.availability === 'completo' ? 'Cupo Completo' : 'Asignado'}</span>
@@ -133,7 +138,7 @@ function createMentorCardMarkup(m) {
         <p class="mentor-bio">${m.bio}</p>
 
         <div class="mentor-skills-wrap">
-          <strong class="mentor-skills-title">Especialidades & Habilidades:</strong>
+          <strong class="mentor-skills-title">Enfoque de Asesoría & Habilidades:</strong>
           <div class="mentor-skills-list">
             ${skillsHtml}
           </div>
@@ -159,14 +164,14 @@ function renderMentoresGrid(mentors) {
   const filtered = filterMentors(source, currentSpecialty, currentAvailability, searchQuery);
 
   if (countEl) {
-    countEl.textContent = `Mostrando ${filtered.length} de ${source.length} mentores disponibles`;
+    countEl.textContent = `Mostrando ${filtered.length} de ${source.length} perfiles de especialidad M4L disponibles`;
   }
 
   if (filtered.length === 0) {
     grid.innerHTML = `
       <div class="mentores-empty-state">
         <p class="empty-icon">🔍</p>
-        <h4>No se encontraron mentores</h4>
+        <h4>No se encontraron perfiles de especialidad</h4>
         <p>Intenta ajustar tus criterios de búsqueda o seleccionar otra especialidad.</p>
         <button type="button" class="btn btn-secondary cut-btn btn-sm" id="btnResetFilters">
           <span>Restablecer Filtros</span>
@@ -308,4 +313,3 @@ if (typeof module !== 'undefined' && module.exports) {
     initMentoresFilter
   };
 }
-
