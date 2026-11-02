@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS public.squad_registrations (
     school_name VARCHAR(120) NOT NULL CHECK (char_length(trim(school_name)) >= 2),
     school_district VARCHAR(80) NOT NULL CHECK (char_length(trim(school_district)) >= 2),
     social_link TEXT NOT NULL CHECK (social_link ~* '^https?://'),
-    strategy_doc_link TEXT DEFAULT '',
+    strategy_doc_link TEXT NOT NULL CHECK (strategy_doc_link ~* '^https?://'),
     official_hashtag VARCHAR(64) NOT NULL DEFAULT '#USILMarketingGamingMLBB',
     mentor_mode VARCHAR(32) NOT NULL CHECK (mentor_mode IN ('choose', 'direct', 'random')),
     mentor_id VARCHAR(120) NOT NULL,

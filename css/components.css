@@ -2706,7 +2706,7 @@
    - Club M4L Polar Bear Host & Alliance Seal (#01D3D2, #025CE0, #137C53)
    - Interactive Hero Character Carousel (Layla, Zilong, Chou, Hayabusa, Nana, Chang'e, Selena, Vale, Ixia)
    - Interactive 3D Flip Cards (transform-style: preserve-3d, rotateY(180deg))
-   - Official 4-Milestone Timeline (Cronograma V3)
+   - Official 4-Milestone Timeline (Cronograma Oficial)
    ========================================================================== */
 
 /* --- Club M4L Polar Bear Host Badge & Co-Organization Seal --- */
@@ -3035,7 +3035,7 @@
   height: auto;
 }
 
-/* --- Official 4-Milestone Timeline (Cronograma Oficial V3) --- */
+/* --- Official 4-Milestone Timeline (Cronograma Oficial) --- */
 .timeline-4-section {
   margin-top: var(--sp-10);
   margin-bottom: var(--sp-8);

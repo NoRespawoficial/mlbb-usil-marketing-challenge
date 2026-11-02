@@ -92,10 +92,8 @@ function validateSquadRegistration(payload) {
   if (!payload.social_link || !/^https?:\/\/.+/i.test(String(payload.social_link).trim())) {
     errors.push('Debes ingresar el enlace público (URL) de la publicación con el hashtag #USILMarketingGamingMLBB.');
   }
-  if (payload.strategy_doc_link !== undefined) {
-    if (!payload.strategy_doc_link || !/^https?:\/\/.+/i.test(String(payload.strategy_doc_link).trim())) {
-      errors.push('Debes ingresar el enlace a tu Propuesta de Estrategia Digital y Diseño de Skin (Google Drive / Canva / PDF).');
-    }
+  if (!payload.strategy_doc_link || !/^https?:\/\/.+/i.test(String(payload.strategy_doc_link).trim())) {
+    errors.push('Debes ingresar el enlace a tu Propuesta de Estrategia Digital y Diseño de Skin (Google Drive / Canva / PDF).');
   }
 
   const validModes = ['choose', 'direct', 'random'];
@@ -108,8 +106,7 @@ function validateSquadRegistration(payload) {
   }
   if (payload.mentor_mode === 'direct') {
     const hasCustom = payload.custom_mentor_name && String(payload.custom_mentor_name).trim().length >= 2;
-    const hasMentorId = payload.mentor_id && String(payload.mentor_id).trim().length >= 2;
-    if (!hasCustom && !hasMentorId) {
+    if (!hasCustom) {
       errors.push('Debes escribir el Nombre o Código de tu Mentor USIL.');
     }
   }
@@ -501,8 +498,15 @@ function initFormValidation() {
   function syncMentorModeControls() {
     const checkedRadio = document.querySelector('input[name="mentor_mode"]:checked');
     const mode = checkedRadio ? checkedRadio.value : 'choose';
+    const feedbackBox = document.getElementById('schoolFormFeedback');
+    if (feedbackBox && feedbackBox.classList.contains('is-error')) {
+      feedbackBox.style.display = 'none';
+    }
 
     if (mode === 'direct') {
+      if (typeof window !== 'undefined' && typeof window.clearSelectedMentor === 'function') {
+        window.clearSelectedMentor();
+      }
       if (customMentorWrap) customMentorWrap.style.display = 'flex';
       if (customMentorInput) {
         customMentorInput.disabled = false;
@@ -511,6 +515,10 @@ function initFormValidation() {
       if (mentorSelectWrap) mentorSelectWrap.style.display = 'none';
       if (mentorSelect) {
         mentorSelect.disabled = true;
+        mentorSelect.value = '';
+        if (mentorSelect.options && mentorSelect.options.length > 0) {
+          mentorSelect.selectedIndex = 0;
+        }
       }
     } else if (mode === 'random') {
       if (typeof window !== 'undefined' && typeof window.clearSelectedMentor === 'function') {
@@ -527,7 +535,10 @@ function initFormValidation() {
       }
       if (mentorSelect) {
         mentorSelect.disabled = true;
-        mentorSelect.value = 'ASIGNACION_ALEATORIA_M4L';
+        mentorSelect.value = '';
+        if (mentorSelect.options && mentorSelect.options.length > 0) {
+          mentorSelect.selectedIndex = 0;
+        }
       }
     } else {
       // mode === 'choose'
@@ -542,8 +553,8 @@ function initFormValidation() {
       }
       if (mentorSelect) {
         mentorSelect.disabled = false;
-        if (mentorSelect.value === 'ASIGNACION_ALEATORIA_M4L') {
-          mentorSelect.value = '';
+        if (mentorSelect.selectedIndex < 0 && mentorSelect.options && mentorSelect.options.length > 0) {
+          mentorSelect.selectedIndex = 0;
         }
       }
     }
@@ -553,6 +564,22 @@ function initFormValidation() {
     radio.addEventListener('change', syncMentorModeControls);
   });
   syncMentorModeControls();
+
+  if (mentorSelect) {
+    mentorSelect.addEventListener('change', () => {
+      const val = mentorSelect.value;
+      if (!val) {
+        if (typeof window !== 'undefined' && typeof window.clearSelectedMentor === 'function') {
+          window.clearSelectedMentor();
+        }
+      } else if (typeof MENTORES_DATA !== 'undefined' && Array.isArray(MENTORES_DATA)) {
+        const found = MENTORES_DATA.find(m => m.id === val);
+        if (found && typeof window !== 'undefined' && typeof window.selectMentor === 'function') {
+          window.selectMentor(found.id);
+        }
+      }
+    });
+  }
 
   const schoolForm = document.getElementById('schoolSquadForm');
   if (schoolForm) {
@@ -599,7 +626,7 @@ function handleSchoolFormSubmit(e) {
   const resolvedMentorId = mentorMode === 'random'
     ? 'ASIGNACION_ALEATORIA_M4L'
     : (mentorMode === 'direct'
-        ? (customMentorName || cleanPlainText(mentorSelect?.value || ''))
+        ? customMentorName
         : cleanPlainText(mentorSelect?.value || ''));
 
   const payload = {
