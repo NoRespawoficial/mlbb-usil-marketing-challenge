@@ -43,9 +43,9 @@ const CONTEST_CONFIG = {
   googleSheetsWebhookUrl: (typeof window !== 'undefined' && window.MLBB_WEBHOOK_URL) ||
     'https://script.google.com/macros/s/AKfycbzbkH7HENEJbe2MtaV33CGMv9Y6VisLr-uEJ74H5-WKJBv0tJ9KiCB5GZ2Sv_pziYtpMA/exec',
   supabaseUrl: (typeof window !== 'undefined' && window.MLBB_SUPABASE_URL) ||
-    'https://usil-mlbb-challenge.supabase.co',
+    'https://tcmeswydlsffnhtqnikb.supabase.co',
   supabaseAnonKey: (typeof window !== 'undefined' && window.MLBB_SUPABASE_ANON_KEY) ||
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzaWwtbWxiYi1jaGFsbGVuZ2UiLCJyb2xlIjoiYW5vbiJ9.publicAnonKeyV6',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjbWVzd3lkbHNmZm5odHFuaWtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ0NTYwNTcsImV4cCI6MjExMDAzMjA1N30.WT-ja7Mn2ZdcNAcq_G_0KPUHnFQTec03c_ImaOG7_i0',
 
   timelineMilestones: [
     {
