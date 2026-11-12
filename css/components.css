@@ -3704,4 +3704,274 @@
   box-shadow: 0 0 14px rgba(1, 211, 210, 0.45);
 }
 
+/* ==========================================================================
+   V6.2 LEGAL MOU (USIL-VIZTA) & UX FLOW OPTIMIZATION STYLES
+   - USIL 30 Años Logo Lockup Refinement (.brand-usil-30)
+   - Institutional MOU Formula Callout (.mou-institutional-note)
+   - 50% / 50% Evaluation Rubric & Tie-Breaker Box (.rubric-breakdown-box)
+   - 84,000 Diamonds Breakdown & 30%/20% Discount Conditions (.diamond-breakdown-panel)
+   - Stage 1 vs Stage 2 Registration Flow (.registration-flow-tabs, .phase1-later-callout, .phase1-submission-panel)
+   - Data Minimization Note & 3 Differentiated Checkboxes (.data-minimization-note, .consent-checkbox-list)
+   - Detailed Privacy Notice Ley N° 29733 (.privacy-notice-section)
+   ========================================================================== */
+
+.brand-usil-30 img,
+.footer-brand-col img[data-asset-src*="usil_logo_white"] {
+  max-height: 42px;
+  width: auto;
+  filter: drop-shadow(0 2px 8px rgba(76, 134, 255, 0.35));
+}
+
+@media (max-width: 767px) {
+  .brand-usil-30 img {
+    max-height: 32px;
+  }
+}
+
+.mou-institutional-note {
+  margin-top: var(--sp-2);
+  padding: 0.65rem 0.95rem;
+  border-radius: var(--radius-sm);
+  background: rgba(13, 20, 64, 0.72);
+  border-left: 3px solid var(--cyan);
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.86);
+  line-height: 1.48;
+}
+
+.rubric-breakdown-box {
+  margin-top: var(--sp-6);
+  padding: var(--sp-5);
+  border-radius: var(--radius-md);
+  background: linear-gradient(145deg, rgba(13, 20, 64, 0.92) 0%, rgba(7, 11, 36, 0.96) 100%);
+  border: 1px solid rgba(63, 216, 245, 0.35);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.42);
+}
+
+.rubric-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+}
+
+@media (min-width: 768px) {
+  .rubric-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.rubric-item {
+  background: rgba(7, 11, 36, 0.78);
+  border: 1px solid rgba(1, 211, 210, 0.28);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-3) var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rubric-pct {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--gold);
+}
+
+.rubric-label {
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.42;
+}
+
+.diamond-breakdown-panel {
+  margin-top: var(--sp-8);
+  padding: var(--sp-6);
+  border-radius: var(--radius-md);
+  background: linear-gradient(155deg, rgba(13, 20, 64, 0.94) 0%, rgba(7, 11, 36, 0.97) 100%);
+  border: 1px solid rgba(242, 181, 61, 0.42);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.48);
+}
+
+.diamond-breakdown-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+}
+
+.diamond-breakdown-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-4);
+}
+
+@media (min-width: 900px) {
+  .diamond-breakdown-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.diamond-breakdown-card {
+  background: rgba(7, 11, 36, 0.82);
+  border: 1px solid rgba(63, 216, 245, 0.28);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.diamond-card-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: 0.03em;
+}
+
+.diamond-card-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.83rem;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.45;
+}
+
+.discount-legal-note {
+  margin-top: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius-sm);
+  background: rgba(25, 71, 186, 0.18);
+  border: 1px solid rgba(76, 134, 255, 0.38);
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.5;
+}
+
+.registration-flow-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-6);
+}
+
+.reg-flow-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.65rem 1.2rem;
+  border-radius: var(--radius-full);
+  background: rgba(13, 20, 64, 0.88);
+  border: 1px solid rgba(63, 216, 245, 0.42);
+  color: #FFFFFF;
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reg-flow-tab-btn:hover,
+.reg-flow-tab-btn.is-active {
+  background: linear-gradient(135deg, var(--m4l-coral) 0%, var(--m4l-blue) 100%);
+  border-color: var(--gold);
+  box-shadow: 0 0 16px rgba(1, 211, 210, 0.4);
+}
+
+.phase1-later-callout {
+  background: linear-gradient(135deg, rgba(2, 92, 224, 0.22) 0%, rgba(1, 211, 210, 0.14) 100%);
+  border: 1.5px solid rgba(1, 211, 210, 0.55);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.phase1-later-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: 0.03em;
+}
+
+.phase1-later-steps {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.52;
+  margin: 0;
+}
+
+.phase1-later-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-1);
+}
+
+.data-minimization-note {
+  background: rgba(242, 181, 61, 0.12);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius-xs);
+  padding: 0.65rem 0.9rem;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.48;
+}
+
+.contact-grid-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.consent-checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.consent-item-optional {
+  border-top: 1px dashed rgba(255, 255, 255, 0.15);
+  padding-top: 0.65rem;
+}
+
+.phase1-submission-panel {
+  margin-top: var(--sp-6);
+  width: 100%;
+}
+
+.privacy-notice-section {
+  margin-top: var(--sp-4);
+  padding: var(--sp-4);
+  border-radius: var(--radius-sm);
+  background: rgba(7, 11, 36, 0.85);
+  border: 1px solid rgba(1, 211, 210, 0.38);
+}
+
+.privacy-notice-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}
+
+.privacy-notice-item {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.48;
+}
+
+
 

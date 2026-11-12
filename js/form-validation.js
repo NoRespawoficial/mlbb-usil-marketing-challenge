@@ -1,20 +1,26 @@
 /**
  * ============================================================================
- * MARKETING GAMING CHALLENGE 2026 — FORM VALIDATION, SECURITY & CLOUD SYNC (v6)
- * Reglas:
- * - Edad estricta: 15 <= edad <= 17 años cumplidos (5 jugadores en cancha, escolares o recién egresados)
- * - Cuentas nuevas MLBB: Mínimo 3 de 5 jugadores con cuenta Noviembre 2026
- * - Correo institucional Mentor USIL: obligatorio dominio @usil.pe
- * - Hashtag oficial Fase 1: #USILMarketingGamingMLBB + enlace de Estrategia Digital (strategy_doc_link)
- * - Seguridad: Sanitización XSS, Honeypot anti-bots, Debounce anti-doble clic
- * - Persistencia Híbrida: Envío paralelo a Google Sheets Webhook + Supabase RLS
- *   con respaldo local en localStorage y cola de reintento offline automática.
+ * MARKETING GAMING CHALLENGE 2026 — FORM VALIDATION, SECURITY & CLOUD SYNC (v6.2)
+ * Adecuación Legal al MOU USIL S.R.L. × VIZTA PTE. LTD. y Ley N° 29733:
+ * - Minimización de Datos (Cláusula 5.3 MOU): Sin campo DNI de menores en registro web.
+ *   Solicita únicamente Nombre y Apellido, Edad (15 a 17 años), Nickname MLBB, Game ID y
+ *   Server ID (Zona), más Correo y Teléfono del Capitán y del Padre/Apoderado responsable.
+ * - Separación Lógica del Flujo:
+ *   Etapa 1 (#schoolSquadForm): Inscripción inicial del Squad 5+1 sin obligatoriedad de links.
+ *   Etapa 2 (#phase1SubmissionForm): Entrega posterior de Skin (#USILMarketingGamingMLBB)
+ *   y Estrategia Digital (Google Drive / Canva / PDF) hasta el 02 de diciembre de 2026 (23:59 h)
+ *   enviada con form_type: "phase1_submission".
+ * - 3 Checkboxes de Consentimiento Diferenciados (Ley N° 29733):
+ *   1) Obligatorio — Bases Oficiales y autorización de padres/tutores.
+ *   2) Obligatorio — Aviso de Privacidad (Ley N° 29733) y uso de imagen/voz institucional.
+ *   3) Opcional — Comunicaciones comerciales y académicas de USIL.
  * ============================================================================
  */
 
 const RETRY_QUEUE_STORAGE_KEY = 'mlbb_sync_retry_queue';
 let isSubmittingSquad = false;
 let isSubmittingMentor = false;
+let isSubmittingPhase1 = false;
 
 /**
  * Sanitiza entradas de texto contra inyección XSS (<, >, &, ", ').
@@ -51,6 +57,12 @@ function validateDni(dni) {
   return /^\d{8}$/.test(clean);
 }
 
+function validateEmail(email) {
+  if (!email || typeof email !== 'string') return false;
+  const clean = email.trim().toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean);
+}
+
 function validateUsilEmail(email) {
   if (!email || typeof email !== 'string') return false;
   const clean = email.trim().toLowerCase();
@@ -68,6 +80,13 @@ function countNovember2026Accounts(players) {
   return players.filter(p => Boolean(p && p.is_nov2026)).length;
 }
 
+/**
+ * Etapa 1: Validación de Inscripción Inicial de Squad (#schoolSquadForm).
+ * - Sin obligatoriedad de social_link ni strategy_doc_link en la inscripción inicial.
+ * - Sin campo DNI de los 5 jugadores (Minimización de datos Ley N° 29733 / Cláusula 5.3 MOU).
+ * - Valida datos de contacto del Capitán y del Padre/Apoderado responsable.
+ * - Valida los Checkboxes obligatorios 1 (Bases y Menores) y 2 (Aviso de Privacidad Ley N° 29733).
+ */
 function validateSquadRegistration(payload) {
   const errors = [];
 
@@ -89,11 +108,42 @@ function validateSquadRegistration(payload) {
   if (!payload.school_district || String(payload.school_district).trim().length < 2) {
     errors.push('El distrito o ciudad del colegio es obligatorio.');
   }
-  if (!payload.social_link || !/^https?:\/\/.+/i.test(String(payload.social_link).trim())) {
-    errors.push('Debes ingresar el enlace público (URL) de la publicación con el hashtag #USILMarketingGamingMLBB.');
+
+  // Enlaces opcionales en inscripción inicial: solo validar formato URL si el usuario ingresó texto
+  if (payload.social_link && String(payload.social_link).trim() !== '' &&
+      !/^https?:\/\/.+/i.test(String(payload.social_link).trim())) {
+    errors.push('Si ingresas el enlace de publicación con #USILMarketingGamingMLBB, debe ser una URL válida (https://...).');
   }
-  if (!payload.strategy_doc_link || !/^https?:\/\/.+/i.test(String(payload.strategy_doc_link).trim())) {
-    errors.push('Debes ingresar el enlace a tu Propuesta de Estrategia Digital y Diseño de Skin (Google Drive / Canva / PDF).');
+  if (payload.strategy_doc_link && String(payload.strategy_doc_link).trim() !== '' &&
+      !/^https?:\/\/.+/i.test(String(payload.strategy_doc_link).trim())) {
+    errors.push('Si ingresas el enlace de Estrategia Digital, debe ser una URL válida (https://...).');
+  }
+
+  // Contacto del Capitán y del Padre/Apoderado responsable
+  if (payload.require_contact_fields || payload.captain_email !== undefined) {
+    if (!validateEmail(payload.captain_email)) {
+      errors.push('Ingresa un correo electrónico de contacto válido para el Capitán del Squad.');
+    }
+  }
+  if (payload.require_contact_fields || payload.captain_phone !== undefined) {
+    if (!validatePhone(payload.captain_phone)) {
+      errors.push('Ingresa un teléfono/WhatsApp de contacto válido de 9 dígitos para el Capitán.');
+    }
+  }
+  if (payload.require_contact_fields || payload.guardian_name !== undefined) {
+    if (!payload.guardian_name || String(payload.guardian_name).trim().length < 3) {
+      errors.push('Ingresa el nombre y apellido del Padre, Madre o Apoderado responsable.');
+    }
+  }
+  if (payload.require_contact_fields || payload.guardian_email !== undefined) {
+    if (!validateEmail(payload.guardian_email)) {
+      errors.push('Ingresa un correo electrónico válido del Padre, Madre o Apoderado responsable.');
+    }
+  }
+  if (payload.require_contact_fields || payload.guardian_phone !== undefined) {
+    if (!validatePhone(payload.guardian_phone)) {
+      errors.push('Ingresa un teléfono válido de 9 dígitos del Padre, Madre o Apoderado responsable.');
+    }
   }
 
   const validModes = ['choose', 'direct', 'random'];
@@ -118,13 +168,10 @@ function validateSquadRegistration(payload) {
     players.forEach((p, idx) => {
       const num = idx + 1;
       if (!p.name || String(p.name).trim().length < 3) {
-        errors.push(`Jugador ${num}: Nombre completo obligatorio.`);
+        errors.push(`Jugador ${num}: Nombre y Apellido obligatorio.`);
       }
       if (!validateAge(p.age)) {
         errors.push(`Jugador ${num}: La edad debe estar estrictamente entre 15 y 17 años cumplidos (ingresado: ${p.age ?? 'vacío'}).`);
-      }
-      if (!validateDni(p.dni)) {
-        errors.push(`Jugador ${num}: El DNI debe tener exactamente 8 dígitos numéricos.`);
       }
       if (!p.nick || String(p.nick).trim().length < 2) {
         errors.push(`Jugador ${num}: Nickname de MLBB obligatorio.`);
@@ -133,7 +180,7 @@ function validateSquadRegistration(payload) {
         errors.push(`Jugador ${num}: Game ID de MLBB inválido (6 a 12 dígitos).`);
       }
       if (!p.server_id || !/^\d{4,6}$/.test(String(p.server_id).trim())) {
-        errors.push(`Jugador ${num}: Zone/Server ID de MLBB inválido (4 a 6 dígitos).`);
+        errors.push(`Jugador ${num}: Server ID (Zona) de MLBB inválido (4 a 6 dígitos).`);
       }
     });
 
@@ -144,7 +191,48 @@ function validateSquadRegistration(payload) {
   }
 
   if (!payload.terms_accepted) {
-    errors.push('Debes declarar la autorización de padres/tutores o docente responsable y aceptar las Bases Oficiales.');
+    errors.push('Checkbox 1 Obligatorio: Debes aceptar las Bases Oficiales del Concurso y declarar la autorización expresa de los padres o tutores legales.');
+  }
+  if (payload.privacy_accepted === false) {
+    errors.push('Checkbox 2 Obligatorio: Debes aceptar el Aviso de Privacidad (Ley N° 29733) y la autorización de uso de imagen, voz y propuestas creativas.');
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors
+  };
+}
+
+/**
+ * Etapa 2: Validación de Entrega Posterior de Propuesta Fase 1 (#phase1SubmissionForm).
+ * El capitán ingresa su Código de Ticket (TKT-...) o Nombre de Squad, el Link de la
+ * publicación en redes (#USILMarketingGamingMLBB) y el Link de Drive/Canva de su Estrategia Digital.
+ */
+function validatePhase1Submission(payload) {
+  const errors = [];
+  if (!payload || typeof payload !== 'object') {
+    return { valid: false, errors: ['Datos de entrega de Fase 1 inválidos.'] };
+  }
+
+  if (payload.website_hp && String(payload.website_hp).trim() !== '') {
+    return { valid: false, errors: ['Solicitud bloqueada por filtro automático anti-bots.'] };
+  }
+
+  const identifier = String(payload.ticket_or_team || payload.ticket_id || payload.team_name || '').trim();
+  if (identifier.length < 2) {
+    errors.push('Debes ingresar tu Código de Ticket (TKT-...) o el Nombre de tu Squad inscrito.');
+  }
+  if (!payload.social_link || !/^https?:\/\/.+/i.test(String(payload.social_link).trim())) {
+    errors.push('Debes ingresar el enlace público (URL) de la publicación en redes con #USILMarketingGamingMLBB.');
+  }
+  if (!payload.strategy_doc_link || !/^https?:\/\/.+/i.test(String(payload.strategy_doc_link).trim())) {
+    errors.push('Debes ingresar el enlace de Google Drive, Canva o PDF de tu Estrategia Digital y Diseño de Skin.');
+  }
+  if (payload.terms_accepted === false) {
+    errors.push('Debes confirmar la aceptación de las Bases Oficiales del Concurso.');
+  }
+  if (payload.privacy_accepted === false) {
+    errors.push('Debes confirmar el Aviso de Privacidad (Ley N° 29733).');
   }
 
   return {
@@ -186,7 +274,10 @@ function validateMentorApplication(applicant) {
     errors.push('Ingresa un número de WhatsApp válido de 9 dígitos (iniciando con 9).');
   }
   if (!applicant.terms_accepted) {
-    errors.push('Debes aceptar el compromiso de mentoría ética y protección de datos de menores (Ley N° 29733).');
+    errors.push('Checkbox 1 Obligatorio: Debes aceptar las Bases Oficiales del Concurso y el compromiso de mentoría.');
+  }
+  if (applicant.privacy_accepted === false) {
+    errors.push('Checkbox 2 Obligatorio: Debes aceptar el Aviso de Privacidad (Ley N° 29733).');
   }
 
   return {
@@ -282,7 +373,7 @@ function enqueueForOfflineRetry(type, record, syncState) {
   try {
     const raw = localStorage.getItem(RETRY_QUEUE_STORAGE_KEY);
     const queue = raw ? JSON.parse(raw) : [];
-    const itemId = record.ticket_id || record.ref_code || `SYNC-${Date.now()}`;
+    const itemId = record.ticket_id || record.submission_id || record.ref_code || `SYNC-${Date.now()}`;
     const existingIdx = queue.findIndex(item => item.id === itemId);
     const sheetsSynced = Boolean(syncState && syncState.sheetsOk);
     const supabaseSynced = Boolean(syncState && syncState.supabaseOk);
@@ -332,7 +423,7 @@ async function dispatchToCloudBackends(type, record, options) {
 
   // 1. Petición a Google Sheets Webhook (CORS-safe text/plain;charset=utf-8 con fallback no-cors)
   if (!opts.skipSheets && webhookUrl && /^https?:\/\//i.test(webhookUrl)) {
-    const sheetsBody = Object.assign({ form_type: type, source: 'landing_v6' }, record);
+    const sheetsBody = Object.assign({ form_type: type, source: 'landing_v6_2' }, record);
     tasks.push(
       fetch(webhookUrl, {
         method: 'POST',
@@ -371,39 +462,62 @@ async function dispatchToCloudBackends(type, record, options) {
 
   // 2. Petición a Supabase REST API (con RLS de solo inserción anónima)
   if (!opts.skipSupabase && supabaseUrl && supabaseAnonKey && /^https?:\/\//i.test(supabaseUrl)) {
-    const table = type === 'mentor' ? 'mentor_applications' : 'squad_registrations';
+    const table = type === 'mentor'
+      ? 'mentor_applications'
+      : (type === 'phase1_submission' ? 'phase1_submissions' : 'squad_registrations');
     const endpoint = `${supabaseUrl.replace(/\/+$/, '')}/rest/v1/${table}`;
-    const dbRow = type === 'mentor'
-      ? {
-          ref_code: record.ref_code,
-          full_name: record.name,
-          usil_code: record.usil_code,
-          institutional_email: record.email,
-          career: record.career,
-          cycle: record.cycle,
-          specialty: record.specialty,
-          whatsapp_phone: record.phone,
-          reg_type: record.reg_type || 'Bolsa Pública',
-          privacy_law_29733_accepted: true,
-          client_source: 'landing_v6'
-        }
-      : {
-          ticket_id: record.ticket_id,
-          team_name: record.team_name,
-          school_name: record.school_name,
-          school_district: record.school_district,
-          social_link: record.social_link,
-          strategy_doc_link: record.strategy_doc_link || '',
-          official_hashtag: '#USILMarketingGamingMLBB',
-          mentor_mode: record.mentor_mode,
-          mentor_id: record.mentor_id,
-          custom_mentor_name: record.custom_mentor_name || '',
-          nov2026_count: record.nov2026_count,
-          players: record.players,
-          parental_consent_accepted: true,
-          privacy_law_29733_accepted: true,
-          client_source: 'landing_v6'
-        };
+    let dbRow;
+    if (type === 'mentor') {
+      dbRow = {
+        ref_code: record.ref_code,
+        full_name: record.name,
+        usil_code: record.usil_code,
+        institutional_email: record.email,
+        career: record.career,
+        cycle: record.cycle,
+        specialty: record.specialty,
+        whatsapp_phone: record.phone,
+        reg_type: record.reg_type || 'Bolsa Pública',
+        privacy_law_29733_accepted: true,
+        marketing_opt_in: Boolean(record.marketing_opt_in),
+        client_source: 'landing_v6_2'
+      };
+    } else if (type === 'phase1_submission') {
+      dbRow = {
+        submission_id: record.submission_id,
+        ticket_or_team: record.ticket_or_team,
+        social_link: record.social_link,
+        strategy_doc_link: record.strategy_doc_link,
+        official_hashtag: '#USILMarketingGamingMLBB',
+        privacy_law_29733_accepted: true,
+        marketing_opt_in: Boolean(record.marketing_opt_in),
+        client_source: 'landing_v6_2'
+      };
+    } else {
+      dbRow = {
+        ticket_id: record.ticket_id,
+        team_name: record.team_name,
+        school_name: record.school_name,
+        school_district: record.school_district,
+        captain_email: record.captain_email || '',
+        captain_phone: record.captain_phone || '',
+        guardian_name: record.guardian_name || '',
+        guardian_email: record.guardian_email || '',
+        guardian_phone: record.guardian_phone || '',
+        social_link: record.social_link || '',
+        strategy_doc_link: record.strategy_doc_link || '',
+        official_hashtag: '#USILMarketingGamingMLBB',
+        mentor_mode: record.mentor_mode,
+        mentor_id: record.mentor_id,
+        custom_mentor_name: record.custom_mentor_name || '',
+        nov2026_count: record.nov2026_count,
+        players: record.players,
+        parental_consent_accepted: true,
+        privacy_law_29733_accepted: true,
+        marketing_opt_in: Boolean(record.marketing_opt_in),
+        client_source: 'landing_v6_2'
+      };
+    }
 
     tasks.push(
       fetch(endpoint, {
@@ -480,8 +594,44 @@ function populateSchoolMentorDropdown() {
   });
 }
 
+function initRegistrationFlowTabs() {
+  const tabBtns = document.querySelectorAll('[data-reg-tab]');
+  const openPhase1Triggers = document.querySelectorAll('[data-open-phase1-tab]');
+
+  function activateRegSection(targetId, shouldScroll) {
+    tabBtns.forEach(btn => {
+      const isMatch = btn.getAttribute('data-reg-tab') === targetId;
+      btn.classList.toggle('is-active', isMatch);
+      btn.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+    });
+    const targetEl = document.getElementById(targetId);
+    if (targetEl && shouldScroll && typeof targetEl.scrollIntoView === 'function') {
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-reg-tab');
+      if (targetId) activateRegSection(targetId, true);
+    });
+  });
+
+  openPhase1Triggers.forEach(trigger => {
+    trigger.addEventListener('click', (e) => {
+      e.preventDefault();
+      activateRegSection('entrega-fase1', true);
+      const ticketInput = document.getElementById('phase1TicketOrTeamInput');
+      if (ticketInput && typeof ticketInput.focus === 'function') {
+        ticketInput.focus();
+      }
+    });
+  });
+}
+
 function initFormValidation() {
   populateSchoolMentorDropdown();
+  initRegistrationFlowTabs();
 
   const novCheckboxes = document.querySelectorAll('.player-nov2026-checkbox');
   novCheckboxes.forEach(cb => {
@@ -586,6 +736,11 @@ function initFormValidation() {
     schoolForm.addEventListener('submit', handleSchoolFormSubmit);
   }
 
+  const phase1Form = document.getElementById('phase1SubmissionForm');
+  if (phase1Form) {
+    phase1Form.addEventListener('submit', handlePhase1SubmissionSubmit);
+  }
+
   const mentorForm = document.getElementById('mentorApplicationForm');
   if (mentorForm) {
     mentorForm.addEventListener('submit', handleMentorFormSubmit);
@@ -615,7 +770,6 @@ function handleSchoolFormSubmit(e) {
     players.push({
       name: cleanPlainText(form.querySelector(`[name="p${i}_name"]`)?.value || ''),
       age: Number(form.querySelector(`[name="p${i}_age"]`)?.value || 0),
-      dni: cleanPlainText(form.querySelector(`[name="p${i}_dni"]`)?.value || ''),
       nick: cleanPlainText(form.querySelector(`[name="p${i}_nick"]`)?.value || ''),
       game_id: cleanPlainText(form.querySelector(`[name="p${i}_game_id"]`)?.value || ''),
       server_id: cleanPlainText(form.querySelector(`[name="p${i}_server_id"]`)?.value || ''),
@@ -629,18 +783,25 @@ function handleSchoolFormSubmit(e) {
         ? customMentorName
         : cleanPlainText(mentorSelect?.value || ''));
 
+  const privacyEl = form.querySelector('[name="privacy_accepted"]');
   const payload = {
     website_hp: form.querySelector('[name="website_hp"]')?.value || '',
     team_name: cleanPlainText(form.querySelector('[name="team_name"]')?.value || ''),
     school_name: cleanPlainText(form.querySelector('[name="school_name"]')?.value || ''),
     school_district: cleanPlainText(form.querySelector('[name="school_district"]')?.value || ''),
-    social_link: cleanPlainText(form.querySelector('[name="social_link"]')?.value || ''),
-    strategy_doc_link: cleanPlainText(form.querySelector('[name="strategy_doc_link"]')?.value || ''),
+    captain_email: cleanPlainText(form.querySelector('[name="captain_email"]')?.value || ''),
+    captain_phone: cleanPlainText(form.querySelector('[name="captain_phone"]')?.value || ''),
+    guardian_name: cleanPlainText(form.querySelector('[name="guardian_name"]')?.value || ''),
+    guardian_email: cleanPlainText(form.querySelector('[name="guardian_email"]')?.value || ''),
+    guardian_phone: cleanPlainText(form.querySelector('[name="guardian_phone"]')?.value || ''),
+    require_contact_fields: true,
     mentor_mode: mentorMode,
     mentor_id: resolvedMentorId,
     custom_mentor_name: customMentorName,
     players,
-    terms_accepted: Boolean(form.querySelector('[name="terms_accepted"]')?.checked)
+    terms_accepted: Boolean(form.querySelector('[name="terms_accepted"]')?.checked),
+    privacy_accepted: Boolean(form.querySelector('[name="privacy_accepted"]')?.checked),
+    marketing_opt_in: Boolean(form.querySelector('[name="marketing_opt_in"]')?.checked)
   };
 
   const result = validateSquadRegistration(payload);
@@ -674,7 +835,12 @@ function handleSchoolFormSubmit(e) {
     timestamp: new Date().toISOString()
   });
 
-  // Guardar inmediatamente en caché local para mostrar e imprimir el ticket de confirmación
+  // Pre-llenar automáticamente el Ticket ID en el formulario de Etapa 2 (Entrega Fase 1)
+  const phase1TicketInput = document.getElementById('phase1TicketOrTeamInput');
+  if (phase1TicketInput && !phase1TicketInput.value) {
+    phase1TicketInput.value = ticketId;
+  }
+
   try {
     const saved = JSON.parse(localStorage.getItem('mlbb_registered_squads') || '[]');
     saved.push(fullRecord);
@@ -686,22 +852,22 @@ function handleSchoolFormSubmit(e) {
   if (feedbackBox) {
     feedbackBox.className = 'form-feedback is-success';
     feedbackBox.innerHTML = `
-      <strong>¡Escuadrón "${sanitizeInput(payload.team_name)}" registrado con éxito!</strong>
+      <strong>¡Escuadrón "${sanitizeInput(payload.team_name)}" inscrito con éxito (Etapa 1)!</strong>
       <p>Código de Ticket Oficial: <code>${sanitizeInput(ticketId)}</code> | Colegio de Procedencia: <strong>${sanitizeInput(payload.school_name)}</strong></p>
       <p>Cuentas Nuevas Nov 2026 verificadas: <strong>${novCount}/5</strong> | Mentor USIL / M4L: <strong>${sanitizeInput(payload.mentor_id)}</strong></p>
+      <p style="font-size:0.84rem;color:#F2B53D;margin-top:0.35rem;">📤 <strong>Siguiente Paso (Hasta el 02 de diciembre de 2026, 23:59 h):</strong> Trabaja junto a tu Mentor USIL/M4L y entrega los links de tu Skin (#USILMarketingGamingMLBB) y Estrategia Digital en la pestaña «Entregar Proyecto Fase 1» indicando tu Ticket <code>${sanitizeInput(ticketId)}</code>.</p>
       <p id="schoolCloudSyncStatus" style="font-size:0.82rem;color:#01D3D2;margin-top:0.35rem;">✓ Respaldo local activo y sincronizando con Google Sheets + Supabase RLS...</p>
       <button type="button" class="btn btn-cyan btn-sm cut-corner-sm" onclick="window.printTicketConfirmation && window.printTicketConfirmation('${sanitizeInput(ticketId)}')" style="margin-top:0.5rem;">🖨️ Imprimir Ticket (${sanitizeInput(ticketId)})</button>
     `;
     feedbackBox.style.display = 'block';
   }
 
-  // Envío asíncrono en paralelo a Google Sheets Webhook y Supabase PostgreSQL
   dispatchToCloudBackends('squad', fullRecord)
     .then(syncRes => {
       const statusNode = document.getElementById('schoolCloudSyncStatus');
       if (statusNode) {
         if (syncRes.sheetsOk && syncRes.supabaseOk) {
-          statusNode.textContent = '✓ Sincronizado en tiempo real con la base oficial USIL x Club M4L (Google Sheets + Supabase RLS).';
+          statusNode.textContent = '✓ Sincronizado en tiempo real con la base oficial USIL × Club M4L (Google Sheets + Supabase RLS).';
         } else if (syncRes.sheetsOk || syncRes.supabaseOk) {
           statusNode.textContent = '✓ Sincronización parcial completada; respaldo pendiente en cola de reintento.';
         } else {
@@ -720,6 +886,101 @@ function handleSchoolFormSubmit(e) {
     });
 }
 
+function handlePhase1SubmissionSubmit(e) {
+  e.preventDefault();
+  if (isSubmittingPhase1) return;
+
+  const form = e.target;
+  const feedbackBox = document.getElementById('phase1FormFeedback');
+  const submitBtn = form.querySelector('button[type="submit"]');
+
+  const termsEl = form.querySelector('[name="phase1_terms_accepted"], [name="phase1_terms"]');
+  const privacyEl = form.querySelector('[name="phase1_privacy_accepted"]');
+
+  const payload = {
+    website_hp: form.querySelector('[name="website_hp"]')?.value || '',
+    ticket_or_team: cleanPlainText(form.querySelector('[name="ticket_or_team"]')?.value || ''),
+    social_link: cleanPlainText(form.querySelector('[name="social_link"]')?.value || ''),
+    strategy_doc_link: cleanPlainText(form.querySelector('[name="strategy_doc_link"]')?.value || ''),
+    terms_accepted: Boolean(termsEl?.checked),
+    privacy_accepted: privacyEl ? Boolean(privacyEl.checked) : true,
+    marketing_opt_in: Boolean(form.querySelector('[name="phase1_marketing_opt_in"]')?.checked)
+  };
+
+  const result = validatePhase1Submission(payload);
+
+  if (!result.valid) {
+    if (feedbackBox) {
+      feedbackBox.className = 'form-feedback is-error';
+      feedbackBox.innerHTML = `
+        <strong>Revisa los datos de entrega de tu Proyecto Fase 1:</strong>
+        <ul>${result.errors.map(err => `<li>${sanitizeInput(err)}</li>`).join('')}</ul>
+      `;
+      feedbackBox.style.display = 'block';
+    }
+    return;
+  }
+
+  isSubmittingPhase1 = true;
+  const originalBtnText = submitBtn ? submitBtn.textContent : '';
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando Entrega Fase 1...';
+  }
+
+  const submissionId = `FASE1-${Date.now().toString().slice(-6)}`;
+  const fullRecord = Object.assign({}, payload, {
+    submission_id: submissionId,
+    form_type: 'phase1_submission',
+    official_hashtag: '#USILMarketingGamingMLBB',
+    timestamp: new Date().toISOString()
+  });
+
+  try {
+    const saved = JSON.parse(localStorage.getItem('mlbb_phase1_submissions') || '[]');
+    saved.push(fullRecord);
+    localStorage.setItem('mlbb_phase1_submissions', JSON.stringify(saved));
+  } catch (err) {
+    // Ignore storage errors
+  }
+
+  if (feedbackBox) {
+    feedbackBox.className = 'form-feedback is-success';
+    feedbackBox.innerHTML = `
+      <strong>¡Proyecto de Fase 1 recibido con éxito!</strong>
+      <p>Constancia de Entrega: <code>${sanitizeInput(submissionId)}</code> | Ticket / Squad: <strong>${sanitizeInput(payload.ticket_or_team)}</strong></p>
+      <p>Publicación (#USILMarketingGamingMLBB): <code>${sanitizeInput(payload.social_link)}</code></p>
+      <p>Documento Estrategia Digital: <code>${sanitizeInput(payload.strategy_doc_link)}</code></p>
+      <p id="phase1CloudSyncStatus" style="font-size:0.82rem;color:#01D3D2;margin-top:0.35rem;">✓ Respaldo local activo y sincronizando entrega Fase 1 con Google Sheets + Supabase RLS...</p>
+      <button type="button" class="btn btn-cyan btn-sm cut-corner-sm" onclick="window.printTicketConfirmation && window.printTicketConfirmation('${sanitizeInput(submissionId)}')" style="margin-top:0.5rem;">🖨️ Imprimir Constancia (${sanitizeInput(submissionId)})</button>
+    `;
+    feedbackBox.style.display = 'block';
+  }
+
+  dispatchToCloudBackends('phase1_submission', fullRecord)
+    .then(syncRes => {
+      const statusNode = document.getElementById('phase1CloudSyncStatus');
+      if (statusNode) {
+        if (syncRes.sheetsOk && syncRes.supabaseOk) {
+          statusNode.textContent = '✓ Entrega Fase 1 sincronizada en tiempo real con Google Sheets + Supabase RLS.';
+        } else if (syncRes.sheetsOk || syncRes.supabaseOk) {
+          statusNode.textContent = '✓ Sincronización parcial completada; respaldo pendiente en cola de reintento.';
+        } else {
+          statusNode.textContent = '✓ Guardado en bóveda local segura (se sincronizará automáticamente al detectar red).';
+        }
+      }
+    })
+    .finally(() => {
+      setTimeout(() => {
+        isSubmittingPhase1 = false;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalBtnText || '📤 Enviar Proyecto Fase 1 (#USILMarketingGamingMLBB)';
+        }
+      }, 600);
+    });
+}
+
 function handleMentorFormSubmit(e) {
   e.preventDefault();
   if (isSubmittingMentor) return;
@@ -728,6 +989,7 @@ function handleMentorFormSubmit(e) {
   const feedbackBox = document.getElementById('mentorFormFeedback');
   const submitBtn = form.querySelector('button[type="submit"]');
 
+  const privacyEl = form.querySelector('[name="mentor_privacy_accepted"], [name="mentor_privacy"]');
   const applicant = {
     website_hp: form.querySelector('[name="website_hp"]')?.value || '',
     name: cleanPlainText(form.querySelector('[name="mentor_name"]')?.value || ''),
@@ -738,7 +1000,9 @@ function handleMentorFormSubmit(e) {
     specialty: cleanPlainText(form.querySelector('[name="mentor_specialty"]')?.value || ''),
     phone: cleanPlainText(form.querySelector('[name="mentor_phone"]')?.value || ''),
     reg_type: cleanPlainText(form.querySelector('[name="mentor_reg_type"]')?.value || 'Bolsa Pública'),
-    terms_accepted: Boolean(form.querySelector('[name="mentor_terms"]')?.checked)
+    terms_accepted: Boolean(form.querySelector('[name="mentor_terms"]')?.checked),
+    privacy_accepted: Boolean(privacyEl?.checked),
+    marketing_opt_in: Boolean(form.querySelector('[name="mentor_marketing_opt_in"], [name="mentor_opt_in"]')?.checked)
   };
 
   const result = validateMentorApplication(applicant);
@@ -781,7 +1045,7 @@ function handleMentorFormSubmit(e) {
     feedbackBox.innerHTML = `
       <strong>¡Postulación de Mentor USIL / Club M4L recibida!</strong>
       <p>Bienvenido(a), <strong>${sanitizeInput(applicant.name)}</strong> (${sanitizeInput(applicant.email)}). Código de Referencia: <code>${sanitizeInput(refCode)}</code>.</p>
-      <p>El equipo del Club M4L validará tu código USIL para asignarte una escuadra y activar tu elegibilidad por hasta 7,000 Diamantes MLBB, Photobook Oficial, Certificado de Liderazgo y beneficios académicos USIL.</p>
+      <p>El equipo del Club M4L validará tu código USIL para asignarte una escuadra y activar tu elegibilidad por hasta 7,000 Diamantes MLBB (para el Mentor Top 1), Photobook Oficial MLBB y Certificado Oficial de Liderazgo Estratégico emitido por la Carrera de Marketing USIL.</p>
       <p id="mentorCloudSyncStatus" style="font-size:0.82rem;color:#01D3D2;margin-top:0.35rem;">✓ Respaldo local activo y sincronizando con Google Sheets + Supabase RLS...</p>
       <button type="button" class="btn btn-cyan btn-sm cut-corner-sm" onclick="window.printTicketConfirmation && window.printTicketConfirmation('${sanitizeInput(refCode)}')" style="margin-top:0.5rem;">🖨️ Imprimir Constancia (${sanitizeInput(refCode)})</button>
     `;
@@ -793,7 +1057,7 @@ function handleMentorFormSubmit(e) {
       const statusNode = document.getElementById('mentorCloudSyncStatus');
       if (statusNode) {
         if (syncRes.sheetsOk && syncRes.supabaseOk) {
-          statusNode.textContent = '✓ Postulación sincronizada en tiempo real con el Comité USIL x Club M4L.';
+          statusNode.textContent = '✓ Postulación sincronizada en tiempo real con el Comité USIL × Club M4L.';
         } else if (syncRes.sheetsOk || syncRes.supabaseOk) {
           statusNode.textContent = '✓ Sincronización parcial completada; respaldo pendiente en cola de reintento.';
         } else {
@@ -823,10 +1087,12 @@ if (typeof window !== 'undefined') {
   window.sanitizeInput = sanitizeInput;
   window.validateAge = validateAge;
   window.validateDni = validateDni;
+  window.validateEmail = validateEmail;
   window.validateUsilEmail = validateUsilEmail;
   window.validatePhone = validatePhone;
   window.countNovember2026Accounts = countNovember2026Accounts;
   window.validateSquadRegistration = validateSquadRegistration;
+  window.validatePhase1Submission = validatePhase1Submission;
   window.validateMentorApplication = validateMentorApplication;
   window.updateNovAccountsProgressUI = updateNovAccountsProgressUI;
   window.selectMentorForRegistration = selectMentorForRegistration;
@@ -841,10 +1107,12 @@ if (typeof module !== 'undefined' && module.exports) {
     sanitizeInput,
     validateAge,
     validateDni,
+    validateEmail,
     validateUsilEmail,
     validatePhone,
     countNovember2026Accounts,
     validateSquadRegistration,
+    validatePhase1Submission,
     validateMentorApplication,
     updateNovAccountsProgressUI,
     selectMentorForRegistration,

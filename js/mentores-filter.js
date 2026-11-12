@@ -1,6 +1,7 @@
 /**
- * Mentor Filter, Search and 1-Click Selection Controller (v6)
- * Tripartite Alliance: Mobile Legends: Bang Bang × USIL Carrera de Marketing × Club M4L
+ * Mentor Filter, Search and 1-Click Selection Controller (v6.2)
+ * Iniciativa académica y de eSports organizada por la Carrera de Marketing de USIL
+ * con el soporte estudiantil del Club Marketing for Leaders (M4L).
  */
 
 const SPECIALTIES = [

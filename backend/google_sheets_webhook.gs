@@ -1,27 +1,21 @@
 /**
  * ============================================================================
- * MARKETING GAMING CHALLENGE 2026 — GOOGLE SHEETS APPS SCRIPT WEBHOOK (v6)
- * Alianza Oficial: Mobile Legends: Bang Bang x USIL (Marketing) x Club M4L
+ * MARKETING GAMING CHALLENGE 2026 — GOOGLE SHEETS APPS SCRIPT WEBHOOK (v6.2)
+ * Iniciativa académica y de eSports organizada por la Carrera de Marketing de la
+ * Universidad San Ignacio de Loyola (USIL) con el soporte estudiantil del Club
+ * Marketing for Leaders (M4L), en colaboración promocional con VIZTA PTE. LTD.
+ * para el videojuego Mobile Legends: Bang Bang (desarrollado por Moonton Games).
  * ============================================================================
  *
- * INSTRUCCIONES DE DESPLIEGUE:
- * 1. Crea una hoja de cálculo en Google Sheets.
- * 2. Ve a Extensiones > Apps Script y pega este código completo en `Código.gs`.
- * 3. Haz clic en "Implementar" > "Nueva implementación".
- * 4. Selecciona tipo "Aplicación web":
- *    - Ejecutar como: "Yo" (propietario de la cuenta).
- *    - Quién tiene acceso: "Cualquier persona" (Anyone).
- * 5. Copia la URL de la aplicación web generada y pégala en `js/config.js`
- *    en la propiedad `googleSheetsWebhookUrl`.
- *
- * NOTA TÉCNICA DE CORS:
- * El cliente envía peticiones POST con `Content-Type: text/plain;charset=utf-8`
- * para evitar bloqueos de preflight OPTIONS en Google Apps Script y permitir
- * lectura íntegra del cuerpo JSON en `e.postData.contents`.
+ * Soporta 3 flujos (form_type):
+ * 1. "squad"              -> Pestaña 'Escuadrones_Escolares' (Inscripción Etapa 1 sin DNI)
+ * 2. "phase1_submission"  -> Pestaña 'Entregas_Fase1' (Entrega Etapa 2: Skin + Estrategia Digital)
+ * 3. "mentor"             -> Pestaña 'Postulaciones_Mentores' (Mentores USIL @usil.pe)
  */
 
 var SHEET_NAMES = {
   SQUADS: 'Escuadrones_Escolares',
+  PHASE1: 'Entregas_Fase1',
   MENTORS: 'Postulaciones_Mentores'
 };
 
@@ -31,6 +25,11 @@ var SQUAD_HEADERS = [
   'Nombre_Squad',
   'Colegio_Procedencia',
   'Distrito_Colegio',
+  'Capitan_Email',
+  'Capitan_Telefono',
+  'Apoderado_Nombre',
+  'Apoderado_Email',
+  'Apoderado_Telefono',
   'Link_Publicacion_Skin (#USILMarketingGamingMLBB)',
   'Link_Estrategia_Digital_Skin (Drive/Canva/PDF)',
   'Modalidad_Mentor',
@@ -38,40 +37,49 @@ var SQUAD_HEADERS = [
   'Cuentas_Nov2026_Count',
   'Capitan_J1_Nombre',
   'Capitan_J1_Edad',
-  'Capitan_J1_DNI',
   'Capitan_J1_Nick_MLBB',
   'Capitan_J1_Game_ID',
   'Capitan_J1_Server_ID',
   'Capitan_J1_Cuenta_Nov2026',
   'Jugador_2_Nombre',
   'Jugador_2_Edad',
-  'Jugador_2_DNI',
   'Jugador_2_Nick_MLBB',
   'Jugador_2_Game_ID',
   'Jugador_2_Server_ID',
   'Jugador_2_Cuenta_Nov2026',
   'Jugador_3_Nombre',
   'Jugador_3_Edad',
-  'Jugador_3_DNI',
   'Jugador_3_Nick_MLBB',
   'Jugador_3_Game_ID',
   'Jugador_3_Server_ID',
   'Jugador_3_Cuenta_Nov2026',
   'Jugador_4_Nombre',
   'Jugador_4_Edad',
-  'Jugador_4_DNI',
   'Jugador_4_Nick_MLBB',
   'Jugador_4_Game_ID',
   'Jugador_4_Server_ID',
   'Jugador_4_Cuenta_Nov2026',
   'Jugador_5_Nombre',
   'Jugador_5_Edad',
-  'Jugador_5_DNI',
   'Jugador_5_Nick_MLBB',
   'Jugador_5_Game_ID',
   'Jugador_5_Server_ID',
   'Jugador_5_Cuenta_Nov2026',
-  'Autorizacion_Padres_Ley29733',
+  'Checkbox1_Bases_y_Menores',
+  'Checkbox2_Privacidad_Ley29733',
+  'Checkbox3_Comunicaciones_USIL_Opcional',
+  'Origen_Cliente'
+];
+
+var PHASE1_HEADERS = [
+  'Fecha_Hora_ISO',
+  'Submission_ID',
+  'Ticket_o_Nombre_Squad',
+  'Link_Publicacion_Skin (#USILMarketingGamingMLBB)',
+  'Link_Estrategia_Digital_Skin (Drive/Canva/PDF)',
+  'Checkbox1_Bases',
+  'Checkbox2_Privacidad_Ley29733',
+  'Checkbox3_Comunicaciones_USIL_Opcional',
   'Origen_Cliente'
 ];
 
@@ -86,13 +94,12 @@ var MENTOR_HEADERS = [
   'Especialidad_Mentoria',
   'Telefono_WhatsApp',
   'Modalidad_Postulacion',
-  'Compromiso_Ley29733',
+  'Checkbox1_Bases_y_Mentoria',
+  'Checkbox2_Privacidad_Ley29733',
+  'Checkbox3_Comunicaciones_USIL_Opcional',
   'Origen_Cliente'
 ];
 
-/**
- * Sanitiza celdas para prevenir Formula Injection (CSV/Sheet Injection) y XSS.
- */
 function sanitizeCell(value) {
   if (value === null || value === undefined) return '';
   var str = String(value).trim();
@@ -102,9 +109,6 @@ function sanitizeCell(value) {
   return str;
 }
 
-/**
- * Obtiene o crea automáticamente la pestaña indicada con formato de encabezados.
- */
 function getOrCreateSheet(spreadsheet, sheetName, headers) {
   var sheet = spreadsheet.getSheetByName(sheetName);
   if (!sheet) {
@@ -122,35 +126,25 @@ function getOrCreateSheet(spreadsheet, sheetName, headers) {
   return sheet;
 }
 
-/**
- * Construye respuesta JSON compatible con CORS de Google Apps Script.
- */
 function buildJsonResponse(payload) {
   return ContentService
     .createTextOutput(JSON.stringify(payload))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-/**
- * Endpoint GET de diagnóstico (Health Check).
- */
 function doGet(e) {
   return buildJsonResponse({
     ok: true,
-    service: 'MARKETING GAMING CHALLENGE 2026 — Webhook Oficial USIL x MLBB x Club M4L',
-    version: '6.1.0',
-    sheets: [SHEET_NAMES.SQUADS, SHEET_NAMES.MENTORS],
+    service: 'MARKETING GAMING CHALLENGE 2026 — Webhook Oficial USIL × Club M4L × VIZTA PTE. LTD.',
+    version: '6.2.0',
+    sheets: [SHEET_NAMES.SQUADS, SHEET_NAMES.PHASE1, SHEET_NAMES.MENTORS],
     timestamp: new Date().toISOString()
   });
 }
 
-/**
- * Endpoint POST principal protegido con LockService contra escrituras concurrentes.
- */
 function doPost(e) {
   var lock = LockService.getScriptLock();
   try {
-    // Espera hasta 15 segundos para adquirir bloqueo exclusivo de escritura
     lock.waitLock(15000);
 
     if (!e || !e.postData || !e.postData.contents) {
@@ -163,7 +157,6 @@ function doPost(e) {
 
     var body = JSON.parse(e.postData.contents);
 
-    // Protección anti-bots (Honeypot)
     if (body.website_hp && String(body.website_hp).trim() !== '') {
       return buildJsonResponse({
         ok: false,
@@ -172,11 +165,11 @@ function doPost(e) {
       });
     }
 
-    if (!body.terms_accepted) {
+    if (body.terms_accepted === false) {
       return buildJsonResponse({
         ok: false,
         error: 'TERMS_NOT_ACCEPTED',
-        message: 'Es obligatorio aceptar las Bases Oficiales y la cláusula de Ley N° 29733.'
+        message: 'Es obligatorio aceptar las Bases Oficiales y el Aviso de Privacidad (Ley N° 29733).'
       });
     }
 
@@ -184,7 +177,39 @@ function doPost(e) {
     var formType = String(body.form_type || body.type || 'squad').toLowerCase();
     var timestamp = sanitizeCell(body.timestamp || new Date().toISOString());
 
+    // 1. Entrega de Proyecto Fase 1 (Equipos ya inscritos)
+    if (formType === 'phase1_submission') {
+      var phase1Sheet = getOrCreateSheet(ss, SHEET_NAMES.PHASE1, PHASE1_HEADERS);
+      var phase1Row = [
+        timestamp,
+        sanitizeCell(body.submission_id || ''),
+        sanitizeCell(body.ticket_or_team || body.ticket_id || body.team_name || ''),
+        sanitizeCell(body.social_link || ''),
+        sanitizeCell(body.strategy_doc_link || ''),
+        body.terms_accepted !== false ? 'ACEPTADO' : 'PENDIENTE',
+        body.privacy_accepted !== false ? 'ACEPTADO_LEY_29733' : 'PENDIENTE',
+        body.marketing_opt_in ? 'SI_OPT_IN' : 'NO',
+        sanitizeCell(body.source || 'landing_v6_2')
+      ];
+      phase1Sheet.appendRow(phase1Row);
+
+      return buildJsonResponse({
+        ok: true,
+        sheet: SHEET_NAMES.PHASE1,
+        submission_id: body.submission_id || '',
+        timestamp: timestamp
+      });
+    }
+
+    // 2. Postulación de Mentores Universitarios USIL (@usil.pe)
     if (formType === 'mentor' || formType === 'postulacion_mentor') {
+      if (!body.terms_accepted) {
+        return buildJsonResponse({
+          ok: false,
+          error: 'TERMS_NOT_ACCEPTED',
+          message: 'Es obligatorio aceptar las Bases Oficiales y la cláusula de Ley N° 29733.'
+        });
+      }
       var emailClean = String(body.email || '').trim().toLowerCase();
       if (!/^[a-z0-9._%+-]+@usil\.pe$/.test(emailClean)) {
         return buildJsonResponse({
@@ -207,7 +232,9 @@ function doPost(e) {
         sanitizeCell(body.phone || ''),
         sanitizeCell(body.reg_type || 'Bolsa Pública'),
         body.terms_accepted ? 'ACEPTADO' : 'PENDIENTE',
-        sanitizeCell(body.source || 'web_v6')
+        body.privacy_accepted !== false ? 'ACEPTADO_LEY_29733' : 'PENDIENTE',
+        body.marketing_opt_in ? 'SI_OPT_IN' : 'NO',
+        sanitizeCell(body.source || 'landing_v6_2')
       ];
       mentorSheet.appendRow(mentorRow);
 
@@ -219,7 +246,15 @@ function doPost(e) {
       });
     }
 
-    // Por defecto: Registro de Escuadrón (5 Jugadores de 15-17 años + 1 Mentor USIL/M4L)
+    // 3. Por defecto: Inscripción Inicial de Escuadrón (5 Jugadores de 15-17 años + 1 Mentor USIL/M4L)
+    if (!body.terms_accepted) {
+      return buildJsonResponse({
+        ok: false,
+        error: 'TERMS_NOT_ACCEPTED',
+        message: 'Es obligatorio aceptar las Bases Oficiales y la cláusula de Ley N° 29733.'
+      });
+    }
+
     var players = Array.isArray(body.players) ? body.players : [];
     var novCount = Number(body.nov2026_count || players.filter(function(p) { return p && p.is_nov2026; }).length || 0);
     if (players.length !== 5 || novCount < 3) {
@@ -238,6 +273,11 @@ function doPost(e) {
       sanitizeCell(body.team_name || ''),
       sanitizeCell(body.school_name || ''),
       sanitizeCell(body.school_district || ''),
+      sanitizeCell(body.captain_email || ''),
+      sanitizeCell(body.captain_phone || ''),
+      sanitizeCell(body.guardian_name || ''),
+      sanitizeCell(body.guardian_email || ''),
+      sanitizeCell(body.guardian_phone || ''),
       sanitizeCell(body.social_link || ''),
       sanitizeCell(body.strategy_doc_link || ''),
       sanitizeCell(body.mentor_mode || ''),
@@ -250,7 +290,6 @@ function doPost(e) {
       squadRow.push(
         sanitizeCell(p.name || ''),
         sanitizeCell(p.age || ''),
-        sanitizeCell(p.dni || ''),
         sanitizeCell(p.nick || ''),
         sanitizeCell(p.game_id || ''),
         sanitizeCell(p.server_id || ''),
@@ -259,8 +298,10 @@ function doPost(e) {
     }
 
     squadRow.push(
-      body.terms_accepted ? 'AUTORIZADO_PADRES_Y_LEY_29733' : 'PENDIENTE',
-      sanitizeCell(body.source || 'web_v6')
+      body.terms_accepted ? 'AUTORIZADO_PADRES_Y_BASES' : 'PENDIENTE',
+      body.privacy_accepted !== false ? 'ACEPTADO_AVISO_PRIVACIDAD_LEY_29733' : 'PENDIENTE',
+      body.marketing_opt_in ? 'SI_OPT_IN_USIL' : 'NO',
+      sanitizeCell(body.source || 'landing_v6_2')
     );
 
     squadSheet.appendRow(squadRow);

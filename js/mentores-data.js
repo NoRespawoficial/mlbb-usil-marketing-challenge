@@ -1,8 +1,10 @@
 /**
  * ============================================================================
- * MARKETING GAMING CHALLENGE 2026 — OFFICIAL M4L SPECIALTY PROFILES (v6)
- * Alianza Oficial: Mobile Legends: Bang Bang × USIL Carrera de Marketing × Club M4L
- * Perfiles Oficiales de Asignación por Especialidad del Club M4L.
+ * MARKETING GAMING CHALLENGE 2026 — OFFICIAL M4L SPECIALTY PROFILES (v6.2)
+ * Iniciativa académica y de eSports organizada por la Carrera de Marketing de la
+ * Universidad San Ignacio de Loyola (USIL) con el soporte estudiantil del Club
+ * Marketing for Leaders (M4L), en colaboración promocional con VIZTA PTE. LTD.
+ * para el videojuego Mobile Legends: Bang Bang (desarrollado por Moonton Games).
  * ============================================================================
  */
 
