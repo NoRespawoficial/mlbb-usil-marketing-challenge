@@ -119,31 +119,21 @@ function validateSquadRegistration(payload) {
     errors.push('Si ingresas el enlace de Estrategia Digital, debe ser una URL válida (https://...).');
   }
 
-  // Contacto del Capitán y del Padre/Apoderado responsable
-  if (payload.require_contact_fields || payload.captain_email !== undefined) {
-    if (!validateEmail(payload.captain_email)) {
-      errors.push('Ingresa un correo electrónico de contacto válido para el Capitán del Squad.');
-    }
+  // Contacto obligatorio del Capitán y del Padre/Apoderado responsable (Directiva 5)
+  if (!validateEmail(payload.captain_email)) {
+    errors.push('Ingresa un correo electrónico de contacto válido para el Capitán del Squad.');
   }
-  if (payload.require_contact_fields || payload.captain_phone !== undefined) {
-    if (!validatePhone(payload.captain_phone)) {
-      errors.push('Ingresa un teléfono/WhatsApp de contacto válido de 9 dígitos para el Capitán.');
-    }
+  if (!validatePhone(payload.captain_phone)) {
+    errors.push('Ingresa un teléfono/WhatsApp de contacto válido de 9 dígitos para el Capitán.');
   }
-  if (payload.require_contact_fields || payload.guardian_name !== undefined) {
-    if (!payload.guardian_name || String(payload.guardian_name).trim().length < 3) {
-      errors.push('Ingresa el nombre y apellido del Padre, Madre o Apoderado responsable.');
-    }
+  if (!payload.guardian_name || String(payload.guardian_name).trim().length < 3) {
+    errors.push('Ingresa el nombre y apellido del Padre, Madre o Apoderado responsable.');
   }
-  if (payload.require_contact_fields || payload.guardian_email !== undefined) {
-    if (!validateEmail(payload.guardian_email)) {
-      errors.push('Ingresa un correo electrónico válido del Padre, Madre o Apoderado responsable.');
-    }
+  if (!validateEmail(payload.guardian_email)) {
+    errors.push('Ingresa un correo electrónico válido del Padre, Madre o Apoderado responsable.');
   }
-  if (payload.require_contact_fields || payload.guardian_phone !== undefined) {
-    if (!validatePhone(payload.guardian_phone)) {
-      errors.push('Ingresa un teléfono válido de 9 dígitos del Padre, Madre o Apoderado responsable.');
-    }
+  if (!validatePhone(payload.guardian_phone)) {
+    errors.push('Ingresa un teléfono válido de 9 dígitos del Padre, Madre o Apoderado responsable.');
   }
 
   const validModes = ['choose', 'direct', 'random'];
@@ -193,7 +183,7 @@ function validateSquadRegistration(payload) {
   if (!payload.terms_accepted) {
     errors.push('Checkbox 1 Obligatorio: Debes aceptar las Bases Oficiales del Concurso y declarar la autorización expresa de los padres o tutores legales.');
   }
-  if (payload.privacy_accepted === false) {
+  if (!payload.privacy_accepted) {
     errors.push('Checkbox 2 Obligatorio: Debes aceptar el Aviso de Privacidad (Ley N° 29733) y la autorización de uso de imagen, voz y propuestas creativas.');
   }
 
@@ -228,11 +218,11 @@ function validatePhase1Submission(payload) {
   if (!payload.strategy_doc_link || !/^https?:\/\/.+/i.test(String(payload.strategy_doc_link).trim())) {
     errors.push('Debes ingresar el enlace de Google Drive, Canva o PDF de tu Estrategia Digital y Diseño de Skin.');
   }
-  if (payload.terms_accepted === false) {
-    errors.push('Debes confirmar la aceptación de las Bases Oficiales del Concurso.');
+  if (!payload.terms_accepted) {
+    errors.push('Checkbox 1 Obligatorio: Debes confirmar la aceptación de las Bases Oficiales del Concurso y que los enlaces tienen acceso público.');
   }
-  if (payload.privacy_accepted === false) {
-    errors.push('Debes confirmar el Aviso de Privacidad (Ley N° 29733).');
+  if (!payload.privacy_accepted) {
+    errors.push('Checkbox 2 Obligatorio: Debes aceptar el Aviso de Privacidad (Ley N° 29733) y el uso de imagen, voz y propuestas creativas.');
   }
 
   return {
@@ -276,7 +266,7 @@ function validateMentorApplication(applicant) {
   if (!applicant.terms_accepted) {
     errors.push('Checkbox 1 Obligatorio: Debes aceptar las Bases Oficiales del Concurso y el compromiso de mentoría.');
   }
-  if (applicant.privacy_accepted === false) {
+  if (!applicant.privacy_accepted) {
     errors.push('Checkbox 2 Obligatorio: Debes aceptar el Aviso de Privacidad (Ley N° 29733).');
   }
 
@@ -358,6 +348,12 @@ function selectMentorForRegistration(mentorId, mentorName) {
       });
     }
   }
+
+  document.querySelectorAll('[data-reg-tab]').forEach(btn => {
+    const isMatch = btn.getAttribute('data-reg-tab') === 'registro-escolar';
+    btn.classList.toggle('is-active', isMatch);
+    btn.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+  });
 
   const formSection = document.getElementById('registro-escolar');
   if (formSection && typeof formSection.scrollIntoView === 'function') {
@@ -478,7 +474,7 @@ async function dispatchToCloudBackends(type, record, options) {
         specialty: record.specialty,
         whatsapp_phone: record.phone,
         reg_type: record.reg_type || 'Bolsa Pública',
-        privacy_law_29733_accepted: true,
+        privacy_law_29733_accepted: Boolean(record.privacy_accepted),
         marketing_opt_in: Boolean(record.marketing_opt_in),
         client_source: 'landing_v6_2'
       };
@@ -489,7 +485,7 @@ async function dispatchToCloudBackends(type, record, options) {
         social_link: record.social_link,
         strategy_doc_link: record.strategy_doc_link,
         official_hashtag: '#USILMarketingGamingMLBB',
-        privacy_law_29733_accepted: true,
+        privacy_law_29733_accepted: Boolean(record.privacy_accepted),
         marketing_opt_in: Boolean(record.marketing_opt_in),
         client_source: 'landing_v6_2'
       };
@@ -512,8 +508,8 @@ async function dispatchToCloudBackends(type, record, options) {
         custom_mentor_name: record.custom_mentor_name || '',
         nov2026_count: record.nov2026_count,
         players: record.players,
-        parental_consent_accepted: true,
-        privacy_law_29733_accepted: true,
+        parental_consent_accepted: Boolean(record.terms_accepted),
+        privacy_law_29733_accepted: Boolean(record.privacy_accepted),
         marketing_opt_in: Boolean(record.marketing_opt_in),
         client_source: 'landing_v6_2'
       };
@@ -625,6 +621,16 @@ function initRegistrationFlowTabs() {
       if (ticketInput && typeof ticketInput.focus === 'function') {
         ticketInput.focus();
       }
+    });
+  });
+
+  // Sync registration-flow-tabs active state when clicking any anchor link to #registro-escolar, #entrega-fase1, or #postulacion-mentores
+  const regSectionLinks = document.querySelectorAll('a[href="#registro-escolar"], a[href="#entrega-fase1"], a[href="#postulacion-mentores"]');
+  regSectionLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      const href = link.getAttribute('href') || '';
+      const targetId = href.replace(/^#/, '');
+      if (targetId) activateRegSection(targetId, false);
     });
   });
 }
@@ -903,7 +909,7 @@ function handlePhase1SubmissionSubmit(e) {
     social_link: cleanPlainText(form.querySelector('[name="social_link"]')?.value || ''),
     strategy_doc_link: cleanPlainText(form.querySelector('[name="strategy_doc_link"]')?.value || ''),
     terms_accepted: Boolean(termsEl?.checked),
-    privacy_accepted: privacyEl ? Boolean(privacyEl.checked) : true,
+    privacy_accepted: Boolean(privacyEl?.checked),
     marketing_opt_in: Boolean(form.querySelector('[name="phase1_marketing_opt_in"]')?.checked)
   };
 

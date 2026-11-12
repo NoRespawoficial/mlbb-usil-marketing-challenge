@@ -165,7 +165,7 @@ function doPost(e) {
       });
     }
 
-    if (body.terms_accepted === false) {
+    if (!body.terms_accepted || body.privacy_accepted === false) {
       return buildJsonResponse({
         ok: false,
         error: 'TERMS_NOT_ACCEPTED',
@@ -179,14 +179,25 @@ function doPost(e) {
 
     // 1. Entrega de Proyecto Fase 1 (Equipos ya inscritos)
     if (formType === 'phase1_submission') {
+      var ticketOrTeam = String(body.ticket_or_team || body.ticket_id || body.team_name || '').trim();
+      var socialLink = String(body.social_link || '').trim();
+      var strategyDocLink = String(body.strategy_doc_link || '').trim();
+      if (ticketOrTeam.length < 2 || !/^https?:\/\/.+/i.test(socialLink) || !/^https?:\/\/.+/i.test(strategyDocLink)) {
+        return buildJsonResponse({
+          ok: false,
+          error: 'INVALID_PHASE1_SUBMISSION',
+          message: 'Debes ingresar tu Código de Ticket (TKT-...) o Nombre de Squad y enlaces válidos (https://...) de tu publicación (#USILMarketingGamingMLBB) y Estrategia Digital.'
+        });
+      }
+
       var phase1Sheet = getOrCreateSheet(ss, SHEET_NAMES.PHASE1, PHASE1_HEADERS);
       var phase1Row = [
         timestamp,
         sanitizeCell(body.submission_id || ''),
-        sanitizeCell(body.ticket_or_team || body.ticket_id || body.team_name || ''),
-        sanitizeCell(body.social_link || ''),
-        sanitizeCell(body.strategy_doc_link || ''),
-        body.terms_accepted !== false ? 'ACEPTADO' : 'PENDIENTE',
+        sanitizeCell(ticketOrTeam),
+        sanitizeCell(socialLink),
+        sanitizeCell(strategyDocLink),
+        body.terms_accepted ? 'ACEPTADO' : 'PENDIENTE',
         body.privacy_accepted !== false ? 'ACEPTADO_LEY_29733' : 'PENDIENTE',
         body.marketing_opt_in ? 'SI_OPT_IN' : 'NO',
         sanitizeCell(body.source || 'landing_v6_2')

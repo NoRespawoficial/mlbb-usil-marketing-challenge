@@ -2984,6 +2984,15 @@
   align-self: flex-start;
 }
 
+@media (max-width: 420px) {
+  .flip-card-back-content > .badge,
+  .flip-card-back-content > .slot-nov-badge {
+    font-size: 0.68rem;
+    padding: 0.22rem 0.5rem;
+    max-width: calc(100% - 12px);
+  }
+}
+
 .flip-cta-pill {
   display: inline-flex;
   align-items: center;
